@@ -1,21 +1,21 @@
-import os
 from pathlib import Path
 
-import torch
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
 from sklearn.metrics import mean_absolute_error
 from torch.utils.data import DataLoader
+
 from evaluate import evaluate_model
 
 
 def make_figures(
-    model: torch.nn.Module,
-    dataloader_test: DataLoader,
-    loss_fn: torch.nn.Module,
-    model_path: str,
-    save_results: bool = False,
-    eval_results: tuple = None
+        model: torch.nn.Module,
+        dataloader_test: DataLoader,
+        loss_fn: torch.nn.Module,
+        model_path: str,
+        save_results: bool = False,
+        eval_results: tuple = None
 ):
     """
     Generate figures based on evaluation type.
@@ -48,7 +48,8 @@ def plot_20datasets(y_test, output_test, model_path):
     max_value = max(output_test)
 
     fig, ax = plt.subplots(figsize=(7, 7))
-    ax.scatter(y_test, output_test, c="b", label=f"MAE: {mae_test:.3f}, R: {np.corrcoef(y_test, output_test)[0, 1]:.3f}", s=3)
+    ax.scatter(y_test, output_test, c="b",
+               label=f"MAE: {mae_test:.3f}, R: {np.corrcoef(y_test, output_test)[0, 1]:.3f}", s=3)
     plt.legend(loc="upper left")
     plt.xlabel("Observed Retention Time")
     plt.ylabel("Predicted Retention Time")
@@ -61,5 +62,3 @@ def plot_20datasets(y_test, output_test, model_path):
     save_path = model_path.replace("best.pth", "scatter_plot.png")
     plt.savefig(save_path, dpi=300)
     plt.show()
-
-
