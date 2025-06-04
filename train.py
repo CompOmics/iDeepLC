@@ -1,10 +1,8 @@
+import numpy as np
 import torch
 from torch import nn, optim
 from torch.cuda.amp import GradScaler
 from torch.utils.data import DataLoader
-from copy import deepcopy
-from typing import Tuple
-import numpy as np
 
 
 def train(
@@ -59,5 +57,3 @@ def train(
 
     avg_loss = current_loss / len(dataloader.dataset)
     return avg_loss
-
-
