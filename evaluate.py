@@ -1,17 +1,16 @@
-import torch
-from torch import nn, optim
-from torch.cuda.amp import GradScaler
-from torch.utils.data import DataLoader
-from copy import deepcopy
-from typing import Tuple, Optional
+from typing import Tuple
+
 import numpy as np
+import torch
+from torch import nn
+from torch.utils.data import DataLoader
 
 
 def validate(
-    model: nn.Module,
-    dataloader: DataLoader,
-    loss_fn: nn.Module,
-    device: torch.device
+        model: nn.Module,
+        dataloader: DataLoader,
+        loss_fn: nn.Module,
+        device: torch.device
 ) -> Tuple[float, float, list, list]:
     """
     Validate the model on a given dataset.
@@ -43,12 +42,12 @@ def validate(
 
 
 def evaluate_model(
-    model: nn.Module,
-    dataloader_test: DataLoader,
-    loss_fn: nn.Module,
-    device: torch.device,
-    model_path: str,
-    save_results: bool = True
+        model: nn.Module,
+        dataloader_test: DataLoader,
+        loss_fn: nn.Module,
+        device: torch.device,
+        model_path: str,
+        save_results: bool = True
 ):
     """
     Load a trained model and evaluate it on test datasets.
