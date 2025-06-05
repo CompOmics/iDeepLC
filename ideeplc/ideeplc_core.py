@@ -1,4 +1,6 @@
 import argparse
+import datetime
+
 import torch
 import wandb
 from pathlib import Path
@@ -10,6 +12,24 @@ from ideeplc.data_initialize import data_initialize
 from ideeplc.train import train
 from ideeplc.evaluate import evaluate_model
 from ideeplc.figure import make_figures
+
+def get_model_save_path(dataset_name):
+    """
+    Determines the correct directory and filename for saving the model.
+    Appends a timestamp to the filename to prevent overwriting.
+
+    Args:
+        dataset_name (str): The dataset name.
+
+    Returns:
+        tuple: (model_save_path, model_dir)
+    """
+    timestamp = datetime.datetime.now().strftime("%m%d")
+
+    model_dir = Path(f"../saved_model/20_datasets/{dataset_name}_{timestamp}")
+    pretrained_path = Path(f"../saved_model/20_datasets/{dataset_name}/best.pth")
+    model_name = f"best.pth"
+    return model_dir / model_name, model_dir, pretrained_path
 
 
 def main(args):
