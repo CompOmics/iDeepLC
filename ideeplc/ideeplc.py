@@ -1,0 +1,96 @@
+import argparse
+import torch
+import wandb
+from pathlib import Path
+from torch import nn, optim
+
+from ideeplc.model import MyNet
+from ideeplc.config import get_config
+from ideeplc.data_initialize import data_initialize
+from ideeplc.train import train
+from ideeplc.evaluate import evaluate_model
+from ideeplc.figure import make_figures
+
+
+def main(args):
+    """
+    Main function that executes training/evaluation for the iDeepLC package based on the provided arguments.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments from the CLI.
+    """
+    # Load configuration
+    config = get_config(epoch=10)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Initialize data
+    data_loaders = data_initialize(args.eval_type, dataset_name=args.dataset_name, test_aa=args.test_aa,
+                                   batch_size=config["batch_size"])
+
+    if args.eval_type == "ptm":
+        dataloader_train, dataloader_val, dataloader_test, dataloader_test_no_mod, x_shape = data_loaders
+        dataloader_test_extra = dataloader_test_no_mod  # Use the additional dataset
+    elif args.eval_type == "aa_glycine":
+        dataloader_train, dataloader_val, dataloader_test, dataloader_test_g, x_shape = data_loaders
+        dataloader_test_extra = dataloader_test_g  # Use the additional dataset
+    else:
+        dataloader_train, dataloader_val, dataloader_test, x_shape = data_loaders
+        dataloader_test_extra = None  # No extra dataset in this case
+
+    # Initialize model
+    model = MyNet(x_shape=x_shape, config=config).to(device)
+
+    # Get model save path
+    best_model_path, model_dir, pretrained_model_path = get_model_save_path(args.eval_type, args.dataset_name,
+                                                                            args.test_aa)
+
+    # Define loss function and optimizer
+    loss_function = nn.L1Loss()
+    optimizer = optim.Adam(model.parameters(), lr=config["learning_rate"])
+
+    if args.train:
+        # Weights & Biases setup
+        wandb.init(config=config, project=args.eval_type, entity="alirezak2", name=args.dataset_name, mode="online")
+
+        model_dir.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
+
+        # Training loop
+        best_loss = float("inf")
+        best_model_state = None
+
+        for epoch in range(config["epochs"]):
+            loss_train = train(model, dataloader_train, loss_function, optimizer, epoch, device,
+                               config["clipping_size"])
+            loss_valid, corr_valid, _, _ = validate(model, dataloader_val, loss_function, device)
+
+            print(
+                f"Epoch {epoch}: Train Loss {loss_train:.4f}, Val Loss {loss_valid:.4f}, Correlation {corr_valid:.4f}")
+
+            if loss_valid < best_loss:
+                best_loss = loss_valid
+                best_model_state = model.state_dict()
+
+            wandb.log({"Train Loss": loss_train, "Validation Loss": loss_valid, "Validation Correlation": corr_valid})
+
+        # Save best model
+        torch.save(best_model_state, best_model_path)
+        model_to_use = str(best_model_path)
+        wandb.finish()
+    else:
+        # Load pre-trained model if training is skipped
+        pretrained_model = str(pretrained_model_path)
+        if not pretrained_model:
+            raise FileNotFoundError(f"No pre-trained model found in {model_dir}. Please enable training first.")
+
+        model.load_state_dict(torch.load(pretrained_model, map_location=device), strict=False)
+        print(f"Loaded pre-trained model: {pretrained_model}")
+        model_to_use = pretrained_model
+
+    # Evaluate on the test set
+    eval_results = evaluate_model(model, dataloader_test, dataloader_test_extra, loss_function, device, model_to_use,
+                                  args.eval_type, args.save_results)
+
+    # Generate Figures
+    make_figures(model, model_to_use, loss_function, dataloader_test, args.eval_type, dataloader_test_extra,
+                 args.save_results, eval_results)
+
