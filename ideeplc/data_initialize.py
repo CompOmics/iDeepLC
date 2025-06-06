@@ -35,7 +35,7 @@ Tuple[DataLoader, DataLoader, DataLoader, DataLoader, np.ndarray]]:
     :return: The DataLoader objects for training, and validation, and the shape of the training data.
     """
 
-    dataset_path = f"../data/20_datasets/{dataset_name}/"
+    dataset_path = f"../data/matrices/{dataset_name}/"
     train_x = np.load(dataset_path + 'train_x.npy')
     train_y = np.load(dataset_path + 'train_y.npy')
     val_x = np.load(dataset_path + 'val_x.npy')

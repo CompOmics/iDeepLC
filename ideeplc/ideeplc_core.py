@@ -9,7 +9,7 @@ from iDeepLC.ideeplc.model import MyNet
 from iDeepLC.ideeplc.config import get_config
 from iDeepLC.ideeplc.data_initialize import data_initialize
 from iDeepLC.ideeplc.train import train
-from iDeepLC.ideeplc.evaluate import evaluate_model
+from iDeepLC.ideeplc.evaluate import validate, evaluate_model
 from iDeepLC.ideeplc.figure import make_figures
 
 def get_model_save_path(dataset_name):
