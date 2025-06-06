@@ -25,8 +25,8 @@ def get_model_save_path(dataset_name):
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
 
-    model_dir = Path(f"../saved_model/20_datasets/{dataset_name}_{timestamp}")
-    pretrained_path = Path(f"../saved_model/20_datasets/{dataset_name}/best.pth")
+    model_dir = Path(f"../data/saved_models/{dataset_name}_{timestamp}")
+    pretrained_path = Path(f"../data/saved_models/{dataset_name}/best.pth")
     model_name = f"best.pth"
     return model_dir / model_name, model_dir, pretrained_path
 
