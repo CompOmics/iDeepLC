@@ -43,25 +43,15 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialize data
-    data_loaders = data_initialize(args.eval_type, dataset_name=args.dataset_name, test_aa=args.test_aa,
-                                   batch_size=config["batch_size"])
+    data_loaders = data_initialize(dataset_name=args.dataset_name, batch_size=config["batch_size"])
 
-    if args.eval_type == "ptm":
-        dataloader_train, dataloader_val, dataloader_test, dataloader_test_no_mod, x_shape = data_loaders
-        dataloader_test_extra = dataloader_test_no_mod  # Use the additional dataset
-    elif args.eval_type == "aa_glycine":
-        dataloader_train, dataloader_val, dataloader_test, dataloader_test_g, x_shape = data_loaders
-        dataloader_test_extra = dataloader_test_g  # Use the additional dataset
-    else:
-        dataloader_train, dataloader_val, dataloader_test, x_shape = data_loaders
-        dataloader_test_extra = None  # No extra dataset in this case
+    dataloader_train, dataloader_val, dataloader_test, x_shape = data_loaders
 
     # Initialize model
     model = MyNet(x_shape=x_shape, config=config).to(device)
 
     # Get model save path
-    best_model_path, model_dir, pretrained_model_path = get_model_save_path(args.eval_type, args.dataset_name,
-                                                                            args.test_aa)
+    best_model_path, model_dir, pretrained_model_path = get_model_save_path(args.dataset_name)
 
     # Define loss function and optimizer
     loss_function = nn.L1Loss()
@@ -106,10 +96,10 @@ def main(args):
         model_to_use = pretrained_model
 
     # Evaluate on the test set
-    eval_results = evaluate_model(model, dataloader_test, dataloader_test_extra, loss_function, device, model_to_use,
-                                  args.eval_type, args.save_results)
+    eval_results = evaluate_model(model=model, dataloader_test=dataloader_test, loss_fn=loss_function, device=device,
+                                  model_path=model_to_use, save_results=args.save_results)
 
     # Generate Figures
-    make_figures(model, model_to_use, loss_function, dataloader_test, args.eval_type, dataloader_test_extra,
-                 args.save_results, eval_results)
+    make_figures(model=model, dataloader_test=dataloader_test, loss_fn=loss_function, model_path=model_to_use,
+                 save_results=args.save_results, eval_results=eval_results)
 
