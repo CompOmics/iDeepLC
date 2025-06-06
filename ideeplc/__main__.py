@@ -9,9 +9,9 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text
 
-from ideeplc import __version__
-from ideeplc.config import get_config
-from ideeplc.main import main as run_ideeplc  # Assumes main logic is exposed here
+from iDeepLC.ideeplc import __version__
+from iDeepLC.ideeplc.config import get_config
+from iDeepLC.ideeplc.main import main as run_ideeplc  # Assumes main logic is exposed here
 
 LOG_MAPPING = {
     "critical": logging.CRITICAL,
