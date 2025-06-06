@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -217,80 +217,96 @@ def encode_sequence_one_hot(sequence: str) -> np.ndarray:
     return encoded
 
 
-def peptide_to_matrix(peptide: str) -> np.ndarray:
-    """Convert a peptide to its matrix representation."""
-    parsed_sequence, modifiers, sequence, modifications = peptide_parser(peptide)
-    modifications_dict = mod_chemical_features()
-    aa_to_feature = aa_chemical_feature()
+def df_to_matrix(seqs: Union[str, List[str]],
+                 df: Optional[pd.DataFrame] = None
+                 ) -> Union[np.ndarray, Tuple[np.ndarray, List[float], List[float], List]]:
+    """
+    Convert a peptide or a list of peptides to their matrix representation.
 
-    encode_seq_mod = encode_sequence_and_modification(
-        sequence, parsed_sequence, modifications_dict, aa_to_feature, modifiers["n_term"], modifiers["c_term"])
-    encode_di_seq_mod = encode_diamino_sequence_and_modification(encode_seq_mod=encode_seq_mod)
+    If a DataFrame with 'tr' and 'predictions' columns is also provided,
+    the function returns a tuple: (matrix, tr_values, prediction_values, errors).
+    Otherwise, it returns only the encoded matrix representation.
 
-    amino_acids_atoms = aa_atomic_composition_array()
-    encode_seq_mod_atomic = encode_sequence_and_modification_atomic(
-        sequence, parsed_sequence, amino_acids_atoms, modifiers["n_term"], modifiers["c_term"])
-    encode_di_seq_mod_atomic = encode_diamino_sequence_and_modification_atomic(encode_seq_mod_atomic)
+    Parameters
+    ----------
+    seqs : str or List[str]
+        A single peptide sequence or a list of peptide sequences.
+    df : pd.DataFrame, optional
+        DataFrame with 'tr' and 'predictions' columns. Must align with the list of sequences.
 
-    encode_seq_meta = encode_sequence_metadata(sequence, encode_seq_mod_atomic)
-    seq_hot = encode_sequence_one_hot(sequence)
+    Returns
+    -------
+    If `seqs` is a string:
+        np.ndarray : matrix representation of the peptide.
+    If `seqs` is a list and `df` is None:
+        np.ndarray : stacked matrix representation of all peptides.
+    If `seqs` is a list and `df` is given:
+        Tuple[np.ndarray, List[float], List[float], List] :
+            - stacked matrix
+            - list of tr values
+            - list of predictions
+            - list of errors (with peptide, index, and exception)
+    """
 
-    peptide_encoded = (
-            encode_seq_mod
-            + encode_di_seq_mod
-            + encode_di_seq_mod_atomic
-            + encode_seq_mod_atomic
-            + encode_seq_meta
-            + seq_hot
-    )
+    # Normalize to list of sequences
+    single_input = isinstance(seqs, str)
+    if single_input:
+        seqs = [seqs]
 
-    return peptide_encoded
-
-
-def df_to_matrix(seqs: List[str], df: pd.DataFrame) -> Tuple[
-    np.ndarray, List[float], List[float], List]:
-    """Convert a DataFrame of sequences to a matrix representation."""
     seqs_encoded = []
     tr = []
     prediction = []
     errors = []
     modifications_dict = mod_chemical_features()
     aa_to_feature = aa_chemical_feature()
+    amino_acids_atoms = aa_atomic_composition_array()
 
-    for idx, peptide in tqdm.tqdm(enumerate(seqs)):
+    for idx, peptide in tqdm.tqdm(enumerate(seqs), total=len(seqs)):
         try:
             parsed_sequence, modifiers, sequence, modifications = peptide_parser(peptide)
+
             encode_seq_mod = encode_sequence_and_modification(
-                sequence, parsed_sequence, modifications_dict, aa_to_feature, modifiers["n_term"], modifiers["c_term"])
+                sequence, parsed_sequence, modifications_dict, aa_to_feature,
+                modifiers["n_term"], modifiers["c_term"]
+            )
             encode_di_seq_mod = encode_diamino_sequence_and_modification(encode_seq_mod=encode_seq_mod)
 
-            amino_acids_atoms = aa_atomic_composition_array()
             encode_seq_mod_atomic = encode_sequence_and_modification_atomic(
-                sequence, parsed_sequence, amino_acids_atoms, modifiers["n_term"], modifiers["c_term"])
+                sequence, parsed_sequence, amino_acids_atoms,
+                modifiers["n_term"], modifiers["c_term"]
+            )
             encode_di_seq_mod_atomic = encode_diamino_sequence_and_modification_atomic(encode_seq_mod_atomic)
 
             encode_seq_meta = encode_sequence_metadata(sequence, encode_seq_mod_atomic)
             seq_hot = encode_sequence_one_hot(sequence)
 
-        except Exception as e:
-            errors.append([peptide, idx, e])
-            continue
-
-        peptide_encoded = (
+            peptide_encoded = (
                 encode_seq_mod
                 + encode_di_seq_mod
                 + encode_di_seq_mod_atomic
                 + encode_seq_mod_atomic
                 + encode_seq_meta
                 + seq_hot
-        )
+            )
 
-        seqs_encoded.append(peptide_encoded)
-        tr.append(df['tr'][idx])  # tr or tr_norm
-        prediction.append(df['predictions'][idx])
+            seqs_encoded.append(peptide_encoded)
+
+            if df is not None:
+                tr.append(df['tr'].iloc[idx])
+                prediction.append(df['predictions'].iloc[idx])
+
+        except Exception as e:
+            errors.append([peptide, idx, e])
+            continue
 
     seqs_stack = np.stack(seqs_encoded)
-    return seqs_stack, tr, prediction, errors
+
+    if single_input:
+        return seqs_stack[0]
+    elif df is not None:
+        return seqs_stack, tr, prediction, errors
+    else:
+        return seqs_stack
 
 
 def reform_seq(seq: str, mod: str) -> str:
