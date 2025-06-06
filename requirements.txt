@@ -1,0 +1,8 @@
+matplotlib==3.7.1
+numpy==1.26.4
+pandas==2.0.3
+pyteomics==4.5
+seaborn==0.13.2
+torch==2.2.1+cu118
+tqdm==4.65.0
+wandb==0.16.2
