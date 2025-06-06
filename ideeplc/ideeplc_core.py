@@ -59,7 +59,7 @@ def main(args):
 
     if args.train:
         # Weights & Biases setup
-        wandb.init(config=config, project=args.eval_type, entity="alirezak2", name=args.dataset_name, mode="online")
+        wandb.init(config=config, project="iDeepLC", entity="alirezak2", name=args.dataset_name, mode="online")
 
         model_dir.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
 
