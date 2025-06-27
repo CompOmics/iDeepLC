@@ -2,29 +2,25 @@ import argparse
 import datetime
 import pandas as pd
 import torch
-import wandb
 from pathlib import Path
 from torch import nn, optim
 from iDeepLC.ideeplc.model import MyNet
 from iDeepLC.ideeplc.config import get_config
 from iDeepLC.ideeplc.data_initialize import data_initialize
-from iDeepLC.ideeplc.train import train
-from iDeepLC.ideeplc.evaluate import validate, evaluate_model
+from iDeepLC.ideeplc.evaluate import evaluate_model
 from iDeepLC.ideeplc.figure import make_figures
 
-def get_model_save_path(dataset_name):
+def get_model_save_path():
     """
     Determines the correct directory and filename for saving the model.
     Appends a timestamp to the filename to prevent overwriting.
 
-    Args:
-        dataset_name (str): The dataset name.
 
     Returns:
         tuple: (model_save_path, model_dir)
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
-
+    dataset_name = 'proteometools'
     model_dir = Path(f"../data/saved_models/{dataset_name}_{timestamp}")
     pretrained_path = Path(f"../data/saved_models/{dataset_name}/best.pth")
     model_name = f"best.pth"
@@ -48,13 +44,14 @@ def main(args):
     # Initialize model
     model = MyNet(x_shape=x_shape, config=config).to(device)
 
-    # Get model save path
-    best_model_path, model_dir, pretrained_model_path = get_model_save_path(args.dataset_name)
+    # Load pre-trained model
+    best_model_path, model_dir, pretrained_model_path = get_model_save_path()
     pretrained_model = str(pretrained_model_path)
     model.load_state_dict(torch.load(pretrained_model, map_location=device), strict=False)
     model_to_use = pretrained_model
     loss_function = nn.L1Loss()
-    # Evaluate on the test set
+
+    # Prediction on provided data
     eval_results = evaluate_model(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, device=device,
                                   model_path=model_to_use, save_results=args.save_results)
 
