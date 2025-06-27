@@ -11,7 +11,7 @@ from rich.text import Text
 
 from iDeepLC.ideeplc import __version__
 from iDeepLC.ideeplc.config import get_config
-from iDeepLC.ideeplc.main import main as run_ideeplc  # Assumes main logic is exposed here
+from iDeepLC.ideeplc.ideeplc_core import main as run_ideeplc  # Assumes main logic is exposed here
 
 LOG_MAPPING = {
     "critical": logging.CRITICAL,
