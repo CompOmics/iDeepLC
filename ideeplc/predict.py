@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Tuple
 
 import numpy as np
@@ -41,12 +42,11 @@ def validate(
     return avg_loss, correlation, outputs, targets
 
 
-def evaluate_model(
+def predict(
         model: nn.Module,
         dataloader_test: DataLoader,
         loss_fn: nn.Module,
         device: torch.device,
-        model_path: str,
         save_results: bool = True
 ):
     """
@@ -59,8 +59,6 @@ def evaluate_model(
     :param model_path: Path to the trained model.
     :param save_results: If True, saves the evaluation results.
     """
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.to(device)  # Ensure model is on correct device
 
     # Validate on the primary test set
     loss_test, corr_test, output_test, y_test = validate(model, dataloader_test, loss_fn, device)
@@ -68,12 +66,10 @@ def evaluate_model(
 
     # Save results
     if save_results:
-        filename = model_path.replace('.pth', '_output_results.csv')
-
+        output_path = Path("data/output") / "output_results.csv"
         data_to_save = np.column_stack((y_test, output_test))
         header = "y_test,output_test"
-
-        np.savetxt(filename, data_to_save, delimiter=',', header=header, fmt='%.6f', comments='')
-        print(f"Results saved to {filename}")
+        np.savetxt(output_path, data_to_save, delimiter=',', header=header, fmt='%.6f', comments='')
+        print(f"Results saved to {output_path}")
 
     return loss_test, corr_test, output_test, y_test

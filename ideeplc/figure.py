@@ -6,7 +6,7 @@ import torch
 from sklearn.metrics import mean_absolute_error
 from torch.utils.data import DataLoader
 
-from evaluate import evaluate_model
+from predict import evaluate_model
 
 
 def make_figures(

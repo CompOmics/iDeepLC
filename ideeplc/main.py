@@ -8,7 +8,7 @@ from torch import nn, optim
 
 from config import get_config
 from data_initialize import data_initialize
-from evaluate import validate, evaluate_model
+from predict import validate, evaluate_model
 from figure import make_figures
 from model import MyNet
 from train import train

@@ -7,7 +7,9 @@ from torch import nn, optim
 from ideeplc.model import MyNet
 from ideeplc.config import get_config
 from ideeplc.data_initialize import data_initialize
-from ideeplc.evaluate import evaluate_model
+from ideeplc.evaluate import predict
+
+
 # from ideeplc.figure import make_figures
 
 def get_model_save_path():
@@ -20,9 +22,9 @@ def get_model_save_path():
         tuple: (model_save_path, model_dir)
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
-    dataset_name = 'proteometools'
+    dataset_name = 'heladeeprt'
     model_dir = Path(f"data/saved_models/{dataset_name}_{timestamp}")
-    pretrained_path = Path(f"data/saved_models/{dataset_name}/best.pth")
+    pretrained_path = f"data/saved_models/{dataset_name}/best.pth"
     model_name = f"best.pth"
     return model_dir / model_name, model_dir, pretrained_path
 
@@ -45,17 +47,15 @@ def main(args):
     model = MyNet(x_shape=x_shape, config=config).to(device)
 
     # Load pre-trained model
-    best_model_path, model_dir, pretrained_model_path = get_model_save_path()
-    pretrained_model = str(pretrained_model_path)
+    best_model_path, model_dir, pretrained_model = get_model_save_path()
     model.load_state_dict(torch.load(pretrained_model, map_location=device), strict=False)
     model_to_use = pretrained_model
     loss_function = nn.L1Loss()
 
     # Prediction on provided data
-    eval_results = evaluate_model(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, device=device,
-                                  model_path=model_to_use, save_results=args.save_results)
+    eval_results = predict(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, device=device,
+                           save_results=args.save_results)
 
     # Generate Figures
     # make_figures(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, model_path=model_to_use,
     #              save_results=args.save_results, eval_results=eval_results)
-
