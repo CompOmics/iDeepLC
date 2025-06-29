@@ -3,7 +3,7 @@ from typing import Tuple, Optional, Union
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from iDeepLC.ideeplc.utilities import df_to_matrix
+from ideeplc.utilities import df_to_matrix
 
 
 # Making the pytorch dataset
@@ -35,9 +35,9 @@ Tuple[DataLoader, DataLoader, DataLoader, DataLoader, np.ndarray]]:
     # Load peptides from CSV file
     df = pd.read_csv(csv_path)
 
-    raw_peptides = df['peptide'].tolist()
+    raw_peptides = df['seq'].tolist()
 
-    sequences, tr, predictions, errors = df_to_matrix(raw_peptides)
+    sequences, tr,  errors = df_to_matrix(raw_peptides, df)
 
     prediction_dataset = MyDataset(sequences, tr)
 
