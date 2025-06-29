@@ -1,8 +1,9 @@
-from typing import List, Tuple, Dict, Union, Optional
+from typing import List, Tuple, Dict, Union, Optional, Any
 
 import numpy as np
 import pandas as pd
 import tqdm
+from numpy import ndarray
 from pyteomics import proforma, mass
 
 
@@ -56,7 +57,7 @@ def aa_atomic_composition_array() -> Dict[str, np.ndarray]:
 
 def aa_chemical_feature() -> Dict[str, np.ndarray]:
     """Get chemical features for amino acids."""
-    df_aminoacids = pd.read_csv('../data/structure_feature/aa_stan.csv')
+    df_aminoacids = pd.read_csv('data/structure_feature/aa_stan.csv')
     # Convert the dataframe to a dictionary
     amino_acids = df_aminoacids.set_index('AA').T.to_dict('list')
     # Convert the dictionary to a dictionary of numpy arrays for each AA
@@ -66,7 +67,7 @@ def aa_chemical_feature() -> Dict[str, np.ndarray]:
 
 def mod_chemical_features() -> Dict[str, Dict[str, Dict[str, float]]]:
     """Get modification features."""
-    df = pd.read_csv('../data/structure_feature/ptm_stan.csv')
+    df = pd.read_csv('data/structure_feature/ptm_stan.csv')
     # Convert the dataframe to a dictionary and transpose it
     df = df.set_index('name').T
     # Convert the DataFrame to a dictionary of modifications with their chemical features
@@ -219,7 +220,7 @@ def encode_sequence_one_hot(sequence: str) -> np.ndarray:
 
 def df_to_matrix(seqs: Union[str, List[str]],
                  df: Optional[pd.DataFrame] = None
-                 ) -> Union[np.ndarray, Tuple[np.ndarray, List[float], List[float], List]]:
+                 ) -> tuple[ndarray, list[Any], list[list[str | list[str] | int | Exception]]] | ndarray | Any:
     """
     Convert a peptide or a list of peptides to their matrix representation.
 
@@ -241,10 +242,9 @@ def df_to_matrix(seqs: Union[str, List[str]],
     If `seqs` is a list and `df` is None:
         np.ndarray : stacked matrix representation of all peptides.
     If `seqs` is a list and `df` is given:
-        Tuple[np.ndarray, List[float], List[float], List] :
+        Tuple[np.ndarray, List[float], List] :
             - stacked matrix
             - list of tr values
-            - list of predictions
             - list of errors (with peptide, index, and exception)
     """
 
@@ -255,7 +255,6 @@ def df_to_matrix(seqs: Union[str, List[str]],
 
     seqs_encoded = []
     tr = []
-    prediction = []
     errors = []
     modifications_dict = mod_chemical_features()
     aa_to_feature = aa_chemical_feature()
@@ -293,18 +292,16 @@ def df_to_matrix(seqs: Union[str, List[str]],
 
             if df is not None:
                 tr.append(df['tr'].iloc[idx])
-                prediction.append(df['predictions'].iloc[idx])
 
         except Exception as e:
             errors.append([peptide, idx, e])
             continue
 
     seqs_stack = np.stack(seqs_encoded)
-
     if single_input:
         return seqs_stack[0]
     elif df is not None:
-        return seqs_stack, tr, prediction, errors
+        return seqs_stack, tr, errors
     else:
         return seqs_stack
 
