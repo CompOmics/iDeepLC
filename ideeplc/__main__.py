@@ -9,9 +9,9 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text
 
-from iDeepLC.ideeplc import __version__
-from iDeepLC.ideeplc.config import get_config
-from iDeepLC.ideeplc.ideeplc_core import main as run_ideeplc  # Assumes main logic is exposed here
+from ideeplc import __version__
+from ideeplc.config import get_config
+from ideeplc.ideeplc_core import main as run_ideeplc  # Assumes main logic is exposed here
 
 LOG_MAPPING = {
     "critical": logging.CRITICAL,
@@ -72,7 +72,7 @@ def main():
     args = parser.parse_args()
 
     # Optional log to file: ./ideeplc_run.log
-    log_file = Path(f"ideeplc_{args.dataset_name}.log")
+    log_file = Path(f"ideeplc.log")
     _setup_logging(args.log_level, log_file=log_file)
 
     try:
