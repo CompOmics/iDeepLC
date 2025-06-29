@@ -4,11 +4,11 @@ import pandas as pd
 import torch
 from pathlib import Path
 from torch import nn, optim
-from iDeepLC.ideeplc.model import MyNet
-from iDeepLC.ideeplc.config import get_config
-from iDeepLC.ideeplc.data_initialize import data_initialize
-from iDeepLC.ideeplc.evaluate import evaluate_model
-from iDeepLC.ideeplc.figure import make_figures
+from ideeplc.model import MyNet
+from ideeplc.config import get_config
+from ideeplc.data_initialize import data_initialize
+from ideeplc.evaluate import evaluate_model
+# from ideeplc.figure import make_figures
 
 def get_model_save_path():
     """
@@ -21,8 +21,8 @@ def get_model_save_path():
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
     dataset_name = 'proteometools'
-    model_dir = Path(f"../data/saved_models/{dataset_name}_{timestamp}")
-    pretrained_path = Path(f"../data/saved_models/{dataset_name}/best.pth")
+    model_dir = Path(f"data/saved_models/{dataset_name}_{timestamp}")
+    pretrained_path = Path(f"data/saved_models/{dataset_name}/best.pth")
     model_name = f"best.pth"
     return model_dir / model_name, model_dir, pretrained_path
 
@@ -56,6 +56,6 @@ def main(args):
                                   model_path=model_to_use, save_results=args.save_results)
 
     # Generate Figures
-    make_figures(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, model_path=model_to_use,
-                 save_results=args.save_results, eval_results=eval_results)
+    # make_figures(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, model_path=model_to_use,
+    #              save_results=args.save_results, eval_results=eval_results)
 
