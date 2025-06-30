@@ -41,8 +41,8 @@ def _argument_parser() -> argparse.ArgumentParser:
         description="iDeepLC: Deep learning-based retention time prediction",
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=42),
     )
-    parser.add_argument("--csv_file", type=str, required=True,
-                        help="Path to the CSV file containing the peptide sequences.")
+    parser.add_argument("--input", type=str, required=True,
+                        help="Path to the (CSV) file containing the peptide sequences.")
     parser.add_argument("--save_results", action="store_true",
                         help="Flag to save results to disk.")
     parser.add_argument("--log_level", type=str, default="info",

@@ -7,7 +7,7 @@ from torch import nn, optim
 from ideeplc.model import MyNet
 from ideeplc.config import get_config
 from ideeplc.data_initialize import data_initialize
-from ideeplc.evaluate import predict
+from ideeplc.predict import predict
 
 
 # from ideeplc.figure import make_figures
@@ -41,7 +41,7 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialize data
-    dataloader_pred, x_shape = data_initialize(csv_path=args.csv_file, batch_size=config["batch_size"])
+    dataloader_pred, x_shape = data_initialize(csv_path=args.input, batch_size=config["batch_size"])
 
     # Initialize model
     model = MyNet(x_shape=x_shape, config=config).to(device)
@@ -49,12 +49,11 @@ def main(args):
     # Load pre-trained model
     best_model_path, model_dir, pretrained_model = get_model_save_path()
     model.load_state_dict(torch.load(pretrained_model, map_location=device), strict=False)
-    model_to_use = pretrained_model
     loss_function = nn.L1Loss()
 
     # Prediction on provided data
     eval_results = predict(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, device=device,
-                           save_results=args.save_results)
+                          input_file=args.input ,save_results=args.save_results)
 
     # Generate Figures
     # make_figures(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, model_path=model_to_use,
