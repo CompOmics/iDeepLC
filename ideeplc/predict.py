@@ -6,6 +6,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
+from ideeplc.calibrate import SplineTransformerCalibration
 
 
 def validate(
@@ -49,6 +50,7 @@ def predict(
         loss_fn: nn.Module,
         device: torch.device,
         input_file: str,
+        calibration_method:  SplineTransformerCalibration(),
         save_results: bool = True
 ):
     """
@@ -64,8 +66,16 @@ def predict(
     
     # Validate on the primary test set
     loss, correlation, predictions, ground_truth = validate(model, dataloader_test, loss_fn, device)
-    print(f'Test Loss: {loss:.4f}, Correlation: {correlation:.4f}')
+    print(f'Prediction Loss: {loss:.4f}, Correlation: {correlation:.4f}')
+    calibration_model = SplineTransformerCalibration()
+    calibration_model.fit(ground_truth, predictions)
+    calibrated_tr = calibration_model.transform(predictions)
+    loss_calibrated = loss_fn(torch.tensor(calibrated_tr).float().view(-1, 1), torch.tensor(ground_truth).float().view(-1, 1))
+    print(f'Calibrated Loss: {loss_calibrated:.4f}')
 
+    print("Fitting calibration model...")
+
+    # Extract
     # Save results
     if save_results:
         timestamp = datetime.datetime.now().strftime("%Y%m%d")

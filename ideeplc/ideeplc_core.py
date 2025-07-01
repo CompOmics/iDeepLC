@@ -8,6 +8,7 @@ from ideeplc.model import MyNet
 from ideeplc.config import get_config
 from ideeplc.data_initialize import data_initialize
 from ideeplc.predict import predict
+from ideeplc.calibrate import SplineTransformerCalibration
 
 
 # from ideeplc.figure import make_figures
@@ -52,7 +53,7 @@ def main(args):
     loss_function = nn.L1Loss()
 
     # Prediction on provided data
-    eval_results = predict(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, device=device,
+    eval_results = predict(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, device=device,calibration_method=SplineTransformerCalibration(),
                           input_file=args.input ,save_results=args.save_results)
 
     # Generate Figures
