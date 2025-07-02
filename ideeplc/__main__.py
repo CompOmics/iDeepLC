@@ -20,7 +20,7 @@ LOG_MAPPING = {
     "info": logging.INFO,
     "debug": logging.DEBUG,
 }
-LOGGER = logging.getLogger("ideeplc")
+LOGGER = logging.getLogger(__name__)
 CONSOLE = Console(record=True)
 
 
@@ -37,12 +37,13 @@ def _print_credits():
 
 
 def _argument_parser() -> argparse.ArgumentParser:
+    """Create and return the argument parser for iDeepLC."""
     parser = argparse.ArgumentParser(
         description="iDeepLC: Deep learning-based retention time prediction",
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=42),
     )
     parser.add_argument("--input", type=str, required=True,
-                        help="Path to the (CSV) file containing the peptide sequences.")
+                        help="Path to the CSV file containing the peptide sequences.")
     parser.add_argument("--save_results", action="store_true",
                         help="Flag to save results to disk.")
     parser.add_argument("--log_level", type=str, default="info",
@@ -52,6 +53,7 @@ def _argument_parser() -> argparse.ArgumentParser:
 
 
 def _setup_logging(level: str, log_file: Path = None):
+    """Set up the logging configuration."""
     if level not in LOG_MAPPING:
         raise ValueError(f"Invalid log level '{level}'. Choose from {', '.join(LOG_MAPPING)}")
     handlers = [RichHandler(rich_tracebacks=True, console=CONSOLE, show_path=False)]
@@ -66,12 +68,13 @@ def _setup_logging(level: str, log_file: Path = None):
 
 
 def main():
+    """Main function to execute iDeepLC."""
     _print_credits()
 
     parser = _argument_parser()
     args = parser.parse_args()
 
-    # Optional log to file: ./ideeplc_run.log
+    # Set up logging to file: ideeplc_run.log
     log_file = Path(f"ideeplc.log")
     _setup_logging(args.log_level, log_file=log_file)
 
@@ -80,6 +83,9 @@ def main():
     except Exception as e:
         LOGGER.exception("Execution failed.")
         sys.exit(1)
+
+    # Log successful completion
+    LOGGER.info("iDeepLC prediction process completed successfully.")
 
 
 

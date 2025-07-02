@@ -32,7 +32,7 @@ class SplineTransformerCalibration:
         simplified: bool, optional
             If True, use a simplified model. Default is False.
         """
-        LOGGER.info("Fitting Spline Transformer Calibration...")
+        LOGGER.info("Starting calibration with SplineTransformer.")
 
         # Ensure inputs are numpy arrays
         measured_tr = np.asarray(measured_tr)
@@ -40,11 +40,12 @@ class SplineTransformerCalibration:
 
         # Check if the lengths match
         if len(measured_tr) != len(predicted_tr):
+            LOGGER.error("Measured and predicted retention times must have the same length.")
             raise ValueError("Measured and predicted retention times must have the same length.")
 
         # Fit a SplineTransformer model
         if simplified:
-            spline = SplineTransformer(degree=2, n_knots=10)
+            LOGGER.info("Using simplified calibration for calibration.")
             linear_model = LinearRegression()
             linear_model.fit(predicted_tr.reshape(-1, 1), measured_tr)
 
@@ -52,6 +53,7 @@ class SplineTransformerCalibration:
             spline_model = linear_model
             linear_model_right = linear_model
         else:
+            LOGGER.info("Using SplineTransformer with more knots for calibration.")
             spline = SplineTransformer(degree=4, n_knots=int(len(measured_tr) / 500) + 5)
             spline_model = make_pipeline(spline, LinearRegression())
             spline_model.fit(predicted_tr.reshape(-1, 1), measured_tr)
@@ -79,6 +81,7 @@ class SplineTransformerCalibration:
         self._linear_model_right = linear_model_right
 
         self._fit = True
+        LOGGER.info("Calibration fitting completed successfully.")
 
 
     def transform(self, tr: np.ndarray) -> np.ndarray:
@@ -96,12 +99,13 @@ class SplineTransformerCalibration:
             The calibrated retention times.
         """
         if not self._fit:
-            print("The model has not been fitted yet. Please call fit() before transform().")
+            LOGGER.error("Calibration model has not been fitted yet. Call fit() before transform().")
+            raise RuntimeError("Calibration model has not been fitted yet. Call fit() before transform().")
 
         # if tr.shape[0] == 0:
         #     return np.array([])
         tr_array = np.array(tr)
-        tr = tr_array.reshape(-1,1)# Ensure tr is a 2D array for prediction
+        tr = tr_array.reshape(-1,1)
 
         # Get spline predictions and linear extrapolation predictions
         y_pred_spline = self._spline_model.predict(tr)
@@ -121,4 +125,5 @@ class SplineTransformerCalibration:
             ~within_range & (tr.ravel() > self._calibrate_max)
             ]
 
+        LOGGER.info("Calibration transformation completed successfully.")
         return np.array(cal_preds)

@@ -3,8 +3,9 @@ import torch
 from torch import nn, optim
 from torch.cuda.amp import GradScaler
 from torch.utils.data import DataLoader
+import logging
 
-
+LOGGER = logging.getLogger(__name__)
 def train(
         model: nn.Module,
         dataloader: DataLoader,

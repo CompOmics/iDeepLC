@@ -1,4 +1,4 @@
-import os.path
+import os
 from pathlib import Path
 from typing import Tuple
 import datetime
@@ -7,8 +7,9 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from ideeplc.calibrate import SplineTransformerCalibration
+import logging
 
-
+LOGGER = logging.getLogger(__name__)
 def validate(
         model: nn.Module,
         dataloader: DataLoader,
@@ -40,6 +41,7 @@ def validate(
 
     avg_loss = total_loss / len(dataloader.dataset)
     correlation = np.corrcoef(predictions, ground_truth)[0, 1]
+    LOGGER.info(f"Validation complete. Loss: {avg_loss:.4f}, Correlation: {correlation:.4f}")
 
     return avg_loss, correlation, predictions, ground_truth
 
@@ -61,29 +63,35 @@ def predict(
     :param loss_fn: Loss function.
     :param device: Computation device.
     :param input_file: Path to the input file containing peptide sequences.
+    :param calibration_method: Calibration method to use for predictions.
     :param save_results: If True, saves the evaluation results.
+    :return: Loss, correlation, predictions, and ground truth values.
     """
-    
-    # Validate on the primary test set
-    loss, correlation, predictions, ground_truth = validate(model, dataloader_test, loss_fn, device)
-    print(f'Prediction Loss: {loss:.4f}, Correlation: {correlation:.4f}')
-    calibration_model = SplineTransformerCalibration()
-    calibration_model.fit(ground_truth, predictions)
-    calibrated_tr = calibration_model.transform(predictions)
-    loss_calibrated = loss_fn(torch.tensor(calibrated_tr).float().view(-1, 1), torch.tensor(ground_truth).float().view(-1, 1))
-    print(f'Calibrated Loss: {loss_calibrated:.4f}')
+    LOGGER.info("Starting prediction process.")
 
-    print("Fitting calibration model...")
+    try:
+        # Validate on the primary test set
+        loss, correlation, predictions, ground_truth = validate(model, dataloader_test, loss_fn, device)
 
-    # Extract
-    # Save results
-    if save_results:
-        timestamp = datetime.datetime.now().strftime("%Y%m%d")
-        input_file_name = os.path.splitext(os.path.basename(input_file))[0]
-        output_path = Path("data/output") / f"{input_file_name}_predictions_{timestamp}.csv"
-        data_to_save = np.column_stack((ground_truth, predictions))
-        header = "ground_truth,predictions"
-        np.savetxt(output_path, data_to_save, delimiter=',', header=header, fmt='%.6f', comments='')
-        print(f"Results saved to {output_path}")
+        LOGGER.info("Fitting calibration model.")
+        calibration_model = calibration_method
+        calibration_model.fit(ground_truth, predictions)
+        calibrated_tr = calibration_model.transform(predictions)
 
-    return loss, correlation, predictions, ground_truth
+        loss_calibrated = loss_fn(torch.tensor(calibrated_tr).float().view(-1, 1), torch.tensor(ground_truth).float().view(-1, 1))
+        LOGGER.info(f"Calibration Loss: {loss_calibrated.item():.4f}")
+
+        # Save results
+        if save_results:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d")
+            input_file_name = os.path.splitext(os.path.basename(input_file))[0]
+            output_path = Path("data/output") / f"{input_file_name}_predictions_{timestamp}.csv"
+            data_to_save = np.column_stack((ground_truth, predictions))
+            header = "ground_truth,predictions"
+            np.savetxt(output_path, data_to_save, delimiter=',', header=header, fmt='%.6f', comments='')
+            LOGGER.info(f"Results saved to {output_path}")
+
+        return loss, correlation, predictions, ground_truth
+    except Exception as e:
+        LOGGER.error(f"An error occurred during prediction: {e}")
+        raise e
