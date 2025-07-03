@@ -49,6 +49,8 @@ def _argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--log_level", type=str, default="info",
                         choices=LOG_MAPPING.keys(),
                         help="Logging level (default: info).")
+    parser.add_argument("--calibrate", action="store_true",
+                        help="Flag to enable calibration of the model predictions.")
     return parser
 
 
