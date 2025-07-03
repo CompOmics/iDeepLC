@@ -52,8 +52,8 @@ def predict(
         loss_fn: nn.Module,
         device: torch.device,
         input_file: str,
-        calibration_method:  SplineTransformerCalibration(),
-        save_results: bool = True
+        calibrate:  bool,
+        save_results: bool
 ):
     """
     Load a trained model and evaluate it on test datasets.
@@ -73,21 +73,27 @@ def predict(
         # Validate on the primary test set
         loss, correlation, predictions, ground_truth = validate(model, dataloader_test, loss_fn, device)
 
-        LOGGER.info("Fitting calibration model.")
-        calibration_model = calibration_method
-        calibration_model.fit(ground_truth, predictions)
-        calibrated_tr = calibration_model.transform(predictions)
+        if calibrate:
+            LOGGER.info("Fitting calibration model.")
+            calibration_model = SplineTransformerCalibration()
+            calibration_model.fit(ground_truth, predictions)
+            calibrated_preds = calibration_model.transform(predictions)
 
-        loss_calibrated = loss_fn(torch.tensor(calibrated_tr).float().view(-1, 1), torch.tensor(ground_truth).float().view(-1, 1))
-        LOGGER.info(f"Calibration Loss: {loss_calibrated.item():.4f}")
+            loss_calibrated = loss_fn(torch.tensor(calibrated_preds).float().view(-1, 1), torch.tensor(ground_truth).float().view(-1, 1))
+            LOGGER.info(f"Calibration Loss: {loss_calibrated.item():.4f}")
 
         # Save results
         if save_results:
             timestamp = datetime.datetime.now().strftime("%Y%m%d")
             input_file_name = os.path.splitext(os.path.basename(input_file))[0]
             output_path = Path("data/output") / f"{input_file_name}_predictions_{timestamp}.csv"
-            data_to_save = np.column_stack((ground_truth, predictions))
-            header = "ground_truth,predictions"
+            if calibrate:
+                data_to_save = np.column_stack((ground_truth, predictions, calibrated_preds))
+                header = "ground_truth,predictions,calibrated_predictions"
+                predictions = calibrated_preds  # Use calibrated predictions for further analysis
+            else:
+                data_to_save = np.column_stack((ground_truth, predictions))
+                header = "ground_truth,predictions"
             np.savetxt(output_path, data_to_save, delimiter=',', header=header, fmt='%.6f', comments='')
             LOGGER.info(f"Results saved to {output_path}")
 

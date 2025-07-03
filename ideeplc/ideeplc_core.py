@@ -8,9 +8,7 @@ from ideeplc.model import MyNet
 from ideeplc.config import get_config
 from ideeplc.data_initialize import data_initialize
 from ideeplc.predict import predict
-from ideeplc.calibrate import SplineTransformerCalibration
-
-
+from ideeplc.figure import make_figures
 # Logging configuration
 LOGGER = logging.getLogger(__name__)
 
@@ -59,20 +57,19 @@ def main(args):
         best_model_path, model_dir, pretrained_model = get_model_save_path()
         model.load_state_dict(torch.load(pretrained_model, map_location=device), strict=False)
 
-
         loss_function = nn.L1Loss()
 
         # Prediction on provided data
         LOGGER.info("Starting prediction")
-        eval_results = predict(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function,
-                               device=device, calibration_method=SplineTransformerCalibration(),
-                               input_file=args.input, save_results=args.save_results)
-
+        pred_loss, pred_cor, pred_results, ground_truth = predict(model=model, dataloader_test=dataloader_pred,
+                                                                  loss_fn=loss_function,
+                                                                  device=device,
+                                                                  calibrate=args.calibrate,
+                                                                  input_file=args.input, save_results=args.save_results)
         LOGGER.info(f"Prediction completed.")
-
         # Generate Figures
-        # make_figures(model=model, dataloader_test=dataloader_pred, loss_fn=loss_function, model_path=model_to_use,
-        #              save_results=args.save_results, eval_results=eval_results)
+        make_figures(predictions=pred_results, ground_truth=ground_truth,
+                     input_file=args.input, calibrated=args.calibrate, save_results=args.save_results)
 
     except Exception as e:
         LOGGER.error(f"An error occurred during execution: {e}")
