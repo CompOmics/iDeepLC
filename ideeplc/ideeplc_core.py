@@ -9,6 +9,7 @@ from ideeplc.config import get_config
 from ideeplc.data_initialize import data_initialize
 from ideeplc.predict import predict
 from ideeplc.figure import make_figures
+from ideeplc.fine_tuning import iDeepLCFineTuner
 # Logging configuration
 LOGGER = logging.getLogger(__name__)
 
@@ -56,6 +57,22 @@ def main(args):
         LOGGER.info("Loading pre-trained model")
         best_model_path, model_dir, pretrained_model = get_model_save_path()
         model.load_state_dict(torch.load(pretrained_model, map_location=device), strict=False)
+
+        if args.finetune:
+            LOGGER.info("Fine-tuning the model")
+            fine_tuner = iDeepLCFineTuner(
+                model=model,
+                train_data=dataloader_pred,
+                device=device,
+                learning_rate=config["learning_rate"],
+                epochs=config["epochs"],
+                batch_size=config["batch_size"],
+                validation_data=None,  # No validation data provided for prediction
+                validation_split=0.1,
+                patience=5
+            )
+            model = fine_tuner.fine_tune(layers_to_freeze=config["layers_to_freeze"])
+
 
         loss_function = nn.L1Loss()
 

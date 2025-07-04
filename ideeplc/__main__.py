@@ -46,6 +46,8 @@ def _argument_parser() -> argparse.ArgumentParser:
                         help="Path to the CSV file containing the peptide sequences.")
     parser.add_argument("--save_results", action="store_true",
                         help="Flag to save results to disk.")
+    parser.add_argument("--finetune", action="store_true",
+                        help="Flag to enable fine-tuning of the model.")
     parser.add_argument("--log_level", type=str, default="info",
                         choices=LOG_MAPPING.keys(),
                         help="Logging level (default: info).")
