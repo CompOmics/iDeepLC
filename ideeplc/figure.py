@@ -14,12 +14,11 @@ def make_figures(predictions: list, ground_truth: list, input_file: str, calibra
     """
     Create and save scatter plot of predicted vs observed retention times.
 
-    Args:
-        predictions (list): List of predicted retention times.
-        ground_truth (list): List of observed retention times.
-        input_file (str): Path to the input file used for predictions.
-        calibrated (bool): Whether the predictions are calibrated. Default is False.
-        save_results (bool): Whether to save the figure. Default is True.
+    :param predictions: List of predicted retention times.
+    :param ground_truth: List of observed retention times.
+    :param input_file: Path to the input file used for predictions.
+    :param calibrated: Boolean indicating if the predictions are calibrated.
+    :param save_results: Boolean indicating if the results should be saved to disk.
 
     """
     try:
