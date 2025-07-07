@@ -8,7 +8,7 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
-def make_figures(predictions: list, ground_truth: list, input_file: str, calibrated: bool = False ,save_results: bool = True,
+def make_figures(predictions: list, ground_truth: list, input_file: str, calibrated: bool = False, finetuned: bool = False, save_results: bool = True,
 
                  ):
     """
@@ -18,6 +18,7 @@ def make_figures(predictions: list, ground_truth: list, input_file: str, calibra
     :param ground_truth: List of observed retention times.
     :param input_file: Path to the input file used for predictions.
     :param calibrated: Boolean indicating if the predictions are calibrated.
+    :param finetuned: Boolean indicating if the model was fine-tuned.
     :param save_results: Boolean indicating if the results should be saved to disk.
 
     """
@@ -34,9 +35,9 @@ def make_figures(predictions: list, ground_truth: list, input_file: str, calibra
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d")
         input_file_name = os.path.splitext(os.path.basename(input_file))[0]
-        suffix = "_calibrated.png" if calibrated else ".png"
-        output_path = Path("data/output") / f"{input_file_name}_predictions_{timestamp}{suffix}"
-        plt.title(f"scatterplot({'calibrated' if calibrated else 'not calibrated'})\n")
+        status = "finetuned" if finetuned else ("calibrated" if calibrated else "not_calibrated")
+        output_path = Path("data/output") / f"{input_file_name}_predictions_{timestamp}{status}.png"
+        plt.title(f"scatterplot({status})\n")
         plt.axis("scaled")
         ax.plot([0, max_value], [0, max_value], ls="--", c=".5")
         plt.xlim(0, max_value)
