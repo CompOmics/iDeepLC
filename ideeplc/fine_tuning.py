@@ -12,13 +12,14 @@ class iDeepLCFineTuner:
     A class to fine-tune the iDeepLC model on a new dataset.
     """
 
-    def __init__(self, model, train_data, device="cpu", learning_rate=0.001, epochs=10, batch_size=256,
-                 validation_data=None, validation_split=0.1, patience=5):
+    def __init__(self, model, train_data, loss_function, device="cpu", learning_rate=0.001, epochs=10, batch_size=256,
+                  validation_data=None, validation_split=0.1, patience=5):
         """
         Initialize the fine-tuner with the model and data loaders.
 
         :param model: The iDeepLC model to be fine-tuned.
         :param train_data: Training dataset.
+        :param loss_function: Loss function to use for training.
         :param device: Device to run the training on ("cpu" or "cuda").
         :param learning_rate: Learning rate for the optimizer.
         :param epochs: Number of epochs to train.
@@ -29,6 +30,7 @@ class iDeepLCFineTuner:
         """
         self.model = model.to(device)
         self.train_data = train_data
+        self.loss_function = loss_function
         self.device = device
         self.learning_rate = learning_rate
         self.epochs = epochs
@@ -71,30 +73,29 @@ class iDeepLCFineTuner:
             self._freeze_layers(layers_to_freeze)
 
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        loss_fn = torch.nn.MSELoss()
-
+        loss_fn = self.loss_function
         # Prepare DataLoader
         if self.validation_data:
-            self.dataloader_train = self.prepare_data(self.train_data)
-            self.dataloader_val = self.prepare_data(self.validation_data, shuffle=False)
+            dataloader_train = self.prepare_data(self.train_data)
+            dataloader_val = self.prepare_data(self.validation_data, shuffle=False)
         else:
             # Split the training data into training and validation sets
             train_size = int((1 - self.validation_split) * len(self.train_data))
             val_size = len(self.train_data) - train_size
             train_dataset, val_dataset = torch.utils.data.random_split(self.train_data, [train_size, val_size])
-            self.dataloader_train = self.prepare_data(train_dataset)
-            self.dataloader_val = self.prepare_data(val_dataset, shuffle=False)
-
-        LOGGER.info(f"Training on {len(self.dataloader_train.dataset)} samples.")
+            dataloader_train = self.prepare_data(train_dataset)
+            dataloader_val = self.prepare_data(val_dataset, shuffle=False)
+        LOGGER.info(f"Training on {len(dataloader_train.dataset)} samples.")
 
         best_model = copy.deepcopy(self.model)
         best_loss = float('inf')
-        epochs_no_improve = 0
+        patience_counter = 0
 
         for epoch in range(self.epochs):
             self.model.train()
             running_loss = 0.0
-            for inputs, target in self.dataloader_train:
+            for batch in dataloader_train:
+                inputs, target = batch
                 inputs, target = inputs.to(self.device), target.to(self.device)
 
                 # Forward pass
@@ -108,12 +109,12 @@ class iDeepLCFineTuner:
 
                 running_loss += loss.item() * inputs.size(0)
 
-            avg_loss = running_loss / len(self.dataloader_train.dataset)
+            avg_loss = running_loss / len(dataloader_train.dataset)
             LOGGER.info(f"Epoch [{epoch + 1}/{self.epochs}], Loss: {avg_loss:.4f}")
 
             # Validate the model after each epoch
-            if self.dataloader_val:
-                val_loss, _, _, _ = validate(self.model, self.dataloader_val, loss_fn, self.device)
+            if dataloader_val:
+                val_loss, _, _, _ = validate(self.model, dataloader_val, loss_fn, self.device)
                 if val_loss < best_loss:
                     best_loss = val_loss
                     best_model = copy.deepcopy(self.model)
