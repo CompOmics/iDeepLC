@@ -48,7 +48,7 @@ def validate(
 
 def predict(
         model: nn.Module,
-        dataloader_test: DataLoader,
+        dataloader_input: DataLoader,
         loss_fn: nn.Module,
         device: torch.device,
         input_file: str,
@@ -59,7 +59,7 @@ def predict(
     Load a trained model and evaluate it on test datasets.
 
     :param model: The trained model.
-    :param dataloader_test: Test dataset loader.
+    :param dataloader_input: Test dataset loader.
     :param loss_fn: Loss function.
     :param device: Computation device.
     :param input_file: Path to the input file containing peptide sequences.
@@ -71,7 +71,7 @@ def predict(
 
     try:
         # Validate on the primary test set
-        loss, correlation, predictions, ground_truth = validate(model, dataloader_test, loss_fn, device)
+        loss, correlation, predictions, ground_truth = validate(model, dataloader_input, loss_fn, device)
 
         if calibrate:
             LOGGER.info("Fitting calibration model.")
