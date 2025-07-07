@@ -22,15 +22,13 @@ class MyDataset(Dataset):
 
 def data_initialize(
         csv_path: str,
-        batch_size: int = 96,
         **kwargs
 ) -> Union[Tuple[DataLoader, DataLoader, DataLoader, np.ndarray],
 Tuple[DataLoader, DataLoader, DataLoader, DataLoader, np.ndarray]]:
     """
-    Initialize data loaders for prediction based on a CSV file containing raw peptide sequences.
+    Initialize peptides matrices based on a CSV file containing raw peptide sequences.
 
     :param csv_path: Path to the CSV file containing raw peptide sequences.
-    :param batch_size: Batch size for DataLoader.
     :return: DataLoader for prediction.
     """
 
@@ -65,16 +63,10 @@ Tuple[DataLoader, DataLoader, DataLoader, DataLoader, np.ndarray]]:
 
     prediction_dataset = MyDataset(sequences, tr)
 
-    # Set the number of workers based on the platform
-    workers = 0 if platform.system() == 'Windows' else 4
-
     # Create DataLoader objects
-    dataloader_pred = DataLoader(prediction_dataset, shuffle=False, batch_size=batch_size, pin_memory=True,
-                                 num_workers=workers)
-
+    dataloader_pred = DataLoader(prediction_dataset)
     # passing the training X shape
     for batch in dataloader_pred:
         x_shape = batch[0].shape
         break
-    LOGGER.info(f"DataLoader initialized with batch size {batch_size}.")
-    return dataloader_pred, x_shape
+    return prediction_dataset, x_shape
