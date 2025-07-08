@@ -1,6 +1,5 @@
 /data/20_datasets
 /data/matrices
-/data/saved_models
 /ideeplc/__pycache__
 /ideeplc/wandb
 /data/output
