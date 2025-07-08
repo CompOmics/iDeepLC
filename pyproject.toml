@@ -40,3 +40,7 @@ dev = [
 
 [tool.setuptools.dynamic]
 version = {attr = "ideeplc.__version__"}
+
+
+[tool.setuptools.packages.find]
+where = ["iDeepLC"]
