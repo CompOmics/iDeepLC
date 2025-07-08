@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include ideeplc/strucure_feature/*.csv
+include ideeplc/models/*.pth
+global-exclude __pycache__ *
