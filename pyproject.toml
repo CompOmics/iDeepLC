@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iDeepLC"
+description = "iDeepLC: A deep Learning-based retention time predictor for unseen modified peptides with a novel encoding system"
+readme = "README.md"
+readme-content-type = "text/markdown"
+authors = [
+    {name = "Alireza Nameni", email = "alireza.nameni@ugent.be"},
+    {name = "Robbin Bouwmeester", email = "robbin.bouwmeester@ugent.be"}
+]
+license = {file = "LICENSE"}
+keywords = ["iDeepLC", "deep learning", "retention time", "proteomics"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dynamic = ["version"]
+homepage = "https://github.com/Alirezak2n/ideeplc"
+requires-python = ">=3.7"
+dependencies = [
+    "numpy>=1.17",
+    "pandas>=0.25",
+    "torch>=2.6.0,<3",
+    "rich",
+    "pandas"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "sphinx",
+    "black",
+    "flake8"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "ideeplc.__version__"}
