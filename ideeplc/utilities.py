@@ -45,7 +45,6 @@ feature_indices = {
 }
 
 num_channels = sum(feature_lengths)
-print(feature_indices)
 
 def aa_atomic_composition_array() -> Dict[str, np.ndarray]:
     """Create an array of atomic compositions for amino acids."""

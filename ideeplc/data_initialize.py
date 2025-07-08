@@ -23,8 +23,7 @@ class MyDataset(Dataset):
 def data_initialize(
         csv_path: str,
         **kwargs
-) -> Union[Tuple[DataLoader, DataLoader, DataLoader, np.ndarray],
-Tuple[DataLoader, DataLoader, DataLoader, DataLoader, np.ndarray]]:
+) -> Union[Tuple[MyDataset, np.ndarray], Tuple[MyDataset, np.ndarray]]:
     """
     Initialize peptides matrices based on a CSV file containing raw peptide sequences.
 
@@ -69,4 +68,5 @@ Tuple[DataLoader, DataLoader, DataLoader, DataLoader, np.ndarray]]:
     for batch in dataloader_pred:
         x_shape = batch[0].shape
         break
+    LOGGER.info(f"Dataset initialized with data shape {x_shape}.")
     return prediction_dataset, x_shape
