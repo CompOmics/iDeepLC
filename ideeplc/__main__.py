@@ -5,13 +5,11 @@ import logging
 import sys
 from pathlib import Path
 
+from ideeplc import __version__
+from ideeplc.ideeplc_core import main as run_ideeplc  # Assumes main logic is exposed here
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text
-
-from ideeplc import __version__
-from ideeplc.config import get_config
-from ideeplc.ideeplc_core import main as run_ideeplc  # Assumes main logic is exposed here
 
 LOG_MAPPING = {
     "critical": logging.CRITICAL,
@@ -90,7 +88,6 @@ def main():
 
     # Log successful completion
     LOGGER.info("iDeepLC prediction process completed successfully.")
-
 
 
 if __name__ == "__main__":
