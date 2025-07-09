@@ -25,7 +25,7 @@ CONSOLE = Console(record=True)
 def _print_credits():
     """Print package credits."""
     text = Text()
-    text.append("\niDeepLC", style="bold link https://github.com/Alirezak2n/ideeplc")
+    text.append("\niDeepLC", style="bold link https://github.com/CompOmics/iDeepLC")
     text.append(f" (v{__version__})\n", style="bold")
     text.append("Deep learning-based retention time prediction.\n")
     text.append("Developed at CompOmics.\n")
