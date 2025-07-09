@@ -39,17 +39,18 @@ def _argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="iDeepLC: Deep learning-based retention time prediction",
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=42),
+        epilog=("Example usage: python -m ideeplc --input peptides.csv --save --finetune\n ")
     )
-    parser.add_argument("--input", type=str, required=True,
+    parser.add_argument("-i", "--input", type=str, required=True,
                         help="Path to the CSV file containing the peptide sequences.")
-    parser.add_argument("--save_results", action="store_true",
+    parser.add_argument("-s", "--save", action="store_true",
                         help="Flag to save results to disk.")
-    parser.add_argument("--finetune", action="store_true",
+    parser.add_argument("-f", "--finetune", action="store_true",
                         help="Flag to enable fine-tuning of the model.")
-    parser.add_argument("--log_level", type=str, default="info",
+    parser.add_argument("-l", "--log_level", type=str, default="info",
                         choices=LOG_MAPPING.keys(),
                         help="Logging level (default: info).")
-    parser.add_argument("--calibrate", action="store_true",
+    parser.add_argument("-c", "--calibrate", action="store_true",
                         help="Flag to enable calibration of the model predictions.")
     return parser
 
