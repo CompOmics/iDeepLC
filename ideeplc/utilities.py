@@ -56,7 +56,7 @@ def aa_atomic_composition_array() -> Dict[str, np.ndarray]:
 
 def aa_chemical_feature() -> Dict[str, np.ndarray]:
     """Get chemical features for amino acids."""
-    df_aminoacids = pd.read_csv('data/structure_feature/aa_stan.csv')
+    df_aminoacids = pd.read_csv('ideeplc/structure_feature/aa_stan.csv')
     # Convert the dataframe to a dictionary
     amino_acids = df_aminoacids.set_index('AA').T.to_dict('list')
     # Convert the dictionary to a dictionary of numpy arrays for each AA
@@ -66,7 +66,7 @@ def aa_chemical_feature() -> Dict[str, np.ndarray]:
 
 def mod_chemical_features() -> Dict[str, Dict[str, Dict[str, float]]]:
     """Get modification features."""
-    df = pd.read_csv('data/structure_feature/ptm_stan.csv')
+    df = pd.read_csv('ideeplc/structure_feature/ptm_stan.csv')
     # Convert the dataframe to a dictionary and transpose it
     df = df.set_index('name').T
     # Convert the DataFrame to a dictionary of modifications with their chemical features

@@ -25,8 +25,8 @@ def get_model_save_path():
         tuple: (model_save_path, model_dir)
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
-    model_dir = Path(f"data/models/{timestamp}")
-    pretrained_path = f"data/models/pretrained_model.pth"
+    model_dir = Path(f"ideeplc/models/{timestamp}")
+    pretrained_path = f"ideeplc/models/pretrained_model.pth"
     model_name = "best.pth"
     return model_dir / model_name, model_dir, pretrained_path
 

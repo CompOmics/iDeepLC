@@ -1,6 +1,3 @@
-/data/20_datasets
-/data/matrices
 /ideeplc/__pycache__
-/ideeplc/wandb
-/data/output
 ideeplc.log
+/ideeplc/output

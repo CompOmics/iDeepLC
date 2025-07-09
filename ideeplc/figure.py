@@ -36,7 +36,7 @@ def make_figures(predictions: list, ground_truth: list, input_file: str, calibra
         timestamp = datetime.datetime.now().strftime("%Y%m%d")
         input_file_name = os.path.splitext(os.path.basename(input_file))[0]
         status = "finetuned" if finetuned else ("calibrated" if calibrated else "not_calibrated")
-        output_path = Path("data/output") / f"{input_file_name}_predictions_{timestamp}{status}.png"
+        output_path = Path("ideeplc/output") / f"{input_file_name}_predictions_{timestamp}{status}.png"
         plt.title(f"scatterplot({status})\n")
         plt.axis("scaled")
         ax.plot([0, max_value], [0, max_value], ls="--", c=".5")
