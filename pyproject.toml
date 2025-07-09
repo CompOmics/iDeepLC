@@ -39,8 +39,12 @@ dev = [
     "flake8"
 ]
 
+
+[tool.setuptools.packages.find]
+include = ["ideeplc"]
+
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
