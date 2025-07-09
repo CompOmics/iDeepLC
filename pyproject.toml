@@ -44,7 +44,7 @@ dev = [
 include = ["ideeplc"]
 
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
@@ -56,16 +56,4 @@ deeplc = "ideeplc.__main__:main"
 [project.urls]
 GitHub = "https://github.com/CompOmics/iDeepLC"
 CompOmics = "https://www.compomics.com"
-
-[tool.black]
-line-length = 99
-target-version = ["py37"]
-
-[tool.isort]
-profile = "black"
-
-[tool.ruff]
-line-length = 99
-target-version = "py37"
-select = ["E", "F", "B", "UP", "SIM", "I"]
 
