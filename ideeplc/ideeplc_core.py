@@ -25,9 +25,8 @@ def get_model_save_path():
         tuple: (model_save_path, model_dir)
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
-    dataset_name = 'proteometools'
-    model_dir = Path(f"data/saved_models/{dataset_name}_{timestamp}")
-    pretrained_path = f"data/saved_models/{dataset_name}/best.pth"
+    model_dir = Path(f"data/models/{timestamp}")
+    pretrained_path = f"data/models/pretrained_model.pth"
     model_name = "best.pth"
     return model_dir / model_name, model_dir, pretrained_path
 
@@ -82,11 +81,11 @@ def main(args):
                                                                   loss_fn=loss_function,
                                                                   device=device,
                                                                   calibrate=args.calibrate,
-                                                                  input_file=args.input, save_results=args.save_results)
+                                                                  input_file=args.input, save_results=args.save)
         LOGGER.info(f"Prediction completed.")
         # Generate Figures
         make_figures(predictions=pred_results, ground_truth=ground_truth,
-                     input_file=args.input, calibrated=args.calibrate, finetuned=args.finetune, save_results=args.save_results)
+                     input_file=args.input, calibrated=args.calibrate, finetuned=args.finetune, save_results=args.save)
 
     except Exception as e:
         LOGGER.error(f"An error occurred during execution: {e}")
