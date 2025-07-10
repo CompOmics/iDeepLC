@@ -1,3 +1,5 @@
 /ideeplc/__pycache__
 ideeplc.log
 /ideeplc/output
+/dist
+/ideeplc.egg-info
