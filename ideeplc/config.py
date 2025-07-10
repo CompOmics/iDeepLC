@@ -1,4 +1,4 @@
-def get_config(lr=1e-3, epoch=50, batch=256, kernel=5, kernel2=3, kernel3=9, kernel4=7, cnn_channels=245,
+def get_config(lr=1e-3, epoch=10, batch=256, kernel=5, kernel2=3, kernel3=9, kernel4=7, cnn_channels=245,
                cnn2_channels=41, cnn3_channels=35, cnn4_channels=50, cnn_layers=1, cnn2_layers=0, cnn3_layers=5,
                cnn4_layers=3, fc_layers=2, fc_output=78, fc2_layers=1, fc2_output=77, drop=0.23, clip=0.25, layers_to_freeze=None):
     """
