@@ -42,7 +42,7 @@ def main(args):
     LOGGER.info("Starting iDeepLC prediction...")
     try:
         # Load configuration
-        config = get_config(epoch=10)
+        config = get_config()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize data
