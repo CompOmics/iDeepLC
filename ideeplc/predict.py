@@ -63,7 +63,7 @@ def predict(
     :param loss_fn: Loss function.
     :param device: Computation device.
     :param input_file: Path to the input file containing peptide sequences.
-    :param calibration_method: Calibration method to use for predictions.
+    :param calibrate: If True, calibrates the results.
     :param save_results: If True, saves the evaluation results.
     :return: Loss, correlation, predictions, and ground truth values.
     """
@@ -78,10 +78,13 @@ def predict(
             calibration_model = SplineTransformerCalibration()
             calibration_model.fit(ground_truth, predictions)
             calibrated_preds = calibration_model.transform(predictions)
+            correlation_preds = np.corrcoef(calibrated_preds, ground_truth)[0, 1]
 
             loss_calibrated = loss_fn(torch.tensor(calibrated_preds).float().view(-1, 1), torch.tensor(ground_truth).float().view(-1, 1))
             LOGGER.info(f"Calibration Loss: {loss_calibrated.item():.4f}")
-
+            predictions = calibrated_preds  # Use calibrated predictions for further analysis
+            loss = loss_calibrated.item()
+            correlation = correlation_preds
         # Save results
         if save_results:
             timestamp = datetime.datetime.now().strftime("%Y%m%d")
@@ -90,7 +93,7 @@ def predict(
             if calibrate:
                 data_to_save = np.column_stack((ground_truth, predictions, calibrated_preds))
                 header = "ground_truth,predictions,calibrated_predictions"
-                predictions = calibrated_preds  # Use calibrated predictions for further analysis
+
             else:
                 data_to_save = np.column_stack((ground_truth, predictions))
                 header = "ground_truth,predictions"
@@ -98,6 +101,8 @@ def predict(
             LOGGER.info(f"Results saved to {output_path}")
 
         return loss, correlation, predictions, ground_truth
+
     except Exception as e:
         LOGGER.error(f"An error occurred during prediction: {e}")
         raise e
+
