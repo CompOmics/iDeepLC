@@ -1,6 +1,6 @@
 # Python
 import pandas as pd
-from iDeepLC.ideeplc.data_initialize import data_initialize
+from ideeplc.data_initialize import data_initialize
 
 def test_data_initialize():
     """Test the data_initialize function."""
