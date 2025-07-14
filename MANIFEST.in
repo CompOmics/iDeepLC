@@ -1,6 +1,4 @@
-include README.md
-include LICENSE
 include ideeplc/structure_feature/*.csv
 include ideeplc/models/*.pth
 include ideeplc/example_input/*.csv
-recursive-include ideeplc *.py
+exclude tests/*
