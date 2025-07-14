@@ -14,7 +14,7 @@ def test_predict():
     config = get_config()
     best_model_path, model_dir, pretrained_model = get_model_save_path()
 
-    test_csv_path = "../ideeplc/example_input/Hela_deeprt.csv"  # Path to a sample test CSV file
+    test_csv_path = "ideeplc/example_input/Hela_deeprt.csv"  # Path to a sample test CSV file
     matrix_input, x_shape = data_initialize(csv_path=test_csv_path)
     dataloader = DataLoader(matrix_input, batch_size=config["batch_size"], shuffle=False)
     model = MyNet(x_shape=x_shape, config=config)

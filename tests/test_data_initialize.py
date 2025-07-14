@@ -4,7 +4,7 @@ from ideeplc.data_initialize import data_initialize
 
 def test_data_initialize():
     """Test the data_initialize function."""
-    test_csv_path = "../ideeplc/example_input/Hela_deeprt.csv"  # Path to a sample test CSV file
+    test_csv_path = "ideeplc/example_input/Hela_deeprt.csv"  # Path to a sample test CSV file
     matrix_input, x_shape = data_initialize(csv_path=test_csv_path)
 
     df_0 = pd.DataFrame(matrix_input[0][0])
