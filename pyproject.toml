@@ -52,7 +52,7 @@ packages = ["ideeplc"]
 version = {attr = "ideeplc.__version__"}
 
 [project.scripts]
-deeplc = "ideeplc.__main__:main"
+ideeplc = "ideeplc.__main__:main"
 
 [project.urls]
 GitHub = "https://github.com/CompOmics/iDeepLC"
