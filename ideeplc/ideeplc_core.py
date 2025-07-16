@@ -11,6 +11,7 @@ from ideeplc.data_initialize import data_initialize
 from ideeplc.predict import predict
 from ideeplc.figure import make_figures
 from ideeplc.fine_tuning import iDeepLCFineTuner
+from importlib.resources import files
 # Logging configuration
 LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ def get_model_save_path():
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
     model_dir = Path(f"ideeplc/models/{timestamp}")
-    pretrained_path = f"ideeplc/models/pretrained_model.pth"
+    pretrained_path = files("ideeplc.models").joinpath("pretrained_model.pth")
     model_name = "pretrained_model.pth"
     return model_dir / model_name, model_dir, pretrained_path
 

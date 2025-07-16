@@ -89,7 +89,8 @@ def predict(
         if save_results:
             timestamp = datetime.datetime.now().strftime("%Y%m%d")
             input_file_name = os.path.splitext(os.path.basename(input_file))[0]
-            output_path = Path("ideeplc/output") / f"{input_file_name}_predictions_{timestamp}.csv"
+            output_path = Path("ideeplc_output") / f"{input_file_name}_predictions_{timestamp}.csv"
+            output_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
             if calibrate:
                 data_to_save = np.column_stack((ground_truth, predictions, calibrated_preds))
                 header = "ground_truth,predictions,calibrated_predictions"
