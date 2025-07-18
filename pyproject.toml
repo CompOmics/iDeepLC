@@ -30,6 +30,7 @@ dependencies = [
     "scikit-learn>=1.4,<2",
     "tqdm>=4.65,<5",
     "rich>=13",
+    "lxml>=4.9,<5",
 ]
 
 [project.optional-dependencies]
