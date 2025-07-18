@@ -1,5 +1,4 @@
 # Python
-import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 from ideeplc.predict import predict

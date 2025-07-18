@@ -124,11 +124,11 @@ def predict(
             result_df = pd.DataFrame(result_data)
             result_df.to_csv(output_path, index=False)
             LOGGER.info(f"Results saved to {output_path}")
-            predictions = (
-                calibrated_preds  # Use calibrated predictions for further analysis
-            )
 
-        return loss, correlation, predictions, ground_truth
+        if calibrate:
+            return loss, correlation, calibrated_preds, ground_truth
+        else:
+            return loss, correlation, predictions, ground_truth
 
     except Exception as e:
         LOGGER.error(f"An error occurred during prediction: {e}")
