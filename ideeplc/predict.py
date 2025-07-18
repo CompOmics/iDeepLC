@@ -83,7 +83,7 @@ def predict(
 
             loss_calibrated = loss_fn(torch.tensor(calibrated_preds).float().view(-1, 1), torch.tensor(ground_truth).float().view(-1, 1))
             LOGGER.info(f"Calibration Loss: {loss_calibrated.item():.4f}")
-            predictions = calibrated_preds  # Use calibrated predictions for further analysis
+            
             loss = loss_calibrated.item()
             correlation = correlation_preds
         # Save results
@@ -112,6 +112,7 @@ def predict(
             result_df = pd.DataFrame(result_data)
             result_df.to_csv(output_path, index=False)
             LOGGER.info(f"Results saved to {output_path}")
+            predictions = calibrated_preds  # Use calibrated predictions for further analysis
 
         return loss, correlation, predictions, ground_truth
 
