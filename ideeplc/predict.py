@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Tuple
 import datetime
 import numpy as np
+import pandas as pd
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -87,18 +88,29 @@ def predict(
             correlation = correlation_preds
         # Save results
         if save_results:
+            input_df = pd.read_csv(input_file)
+
+            # Extract sequences and modifications from the input file
+            sequences = input_df.get('seq', None)
+            modifications = input_df.get('modifications', None)
+
             timestamp = datetime.datetime.now().strftime("%Y%m%d")
             input_file_name = os.path.splitext(os.path.basename(input_file))[0]
             output_path = Path("ideeplc_output") / f"{input_file_name}_predictions_{timestamp}.csv"
             output_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
-            if calibrate:
-                data_to_save = np.column_stack((ground_truth, predictions, calibrated_preds))
-                header = "ground_truth,predictions,calibrated_predictions"
 
-            else:
-                data_to_save = np.column_stack((ground_truth, predictions))
-                header = "ground_truth,predictions"
-            np.savetxt(output_path, data_to_save, delimiter=',', header=header, fmt='%.6f', comments='')
+            result_data = {
+                "sequences": sequences,
+                "modifications": modifications,
+                "ground_truth": ground_truth,
+                "predictions": predictions
+            }
+
+            if calibrate:
+                result_data["calibrated_predictions"] = calibrated_preds
+
+            result_df = pd.DataFrame(result_data)
+            result_df.to_csv(output_path, index=False)
             LOGGER.info(f"Results saved to {output_path}")
 
         return loss, correlation, predictions, ground_truth
