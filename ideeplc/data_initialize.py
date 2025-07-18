@@ -1,6 +1,5 @@
-import platform
 import logging
-from typing import Tuple, Optional, Union
+from typing import Tuple, Union
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
@@ -47,7 +46,7 @@ def data_initialize(
         raise
 
     if "seq" not in df.columns:
-        LOGGER.error(f"CSV file must contain a 'seq' column with peptide sequences.")
+        LOGGER.error("CSV file must contain a 'seq' column with peptide sequences.")
         raise ValueError("Missing 'seq' column in the CSV file.")
     if "modifications" not in df.columns:
         LOGGER.error(

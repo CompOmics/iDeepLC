@@ -103,12 +103,12 @@ def main():
     args = parser.parse_args()
 
     # Set up logging to file: ideeplc_run.log
-    log_file = Path(f"ideeplc.log")
+    log_file = Path("ideeplc.log")
     _setup_logging(args.log_level, log_file=log_file)
 
     try:
         run_ideeplc(args)  # This should be the entry function from your main logic
-    except Exception as e:
+    except Exception:
         LOGGER.exception("Execution failed.")
         sys.exit(1)
 

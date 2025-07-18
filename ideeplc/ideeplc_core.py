@@ -1,4 +1,3 @@
-import argparse
 import datetime
 import logging
 import torch
@@ -92,7 +91,7 @@ def main(args):
             input_file=args.input,
             save_results=args.save,
         )
-        LOGGER.info(f"Prediction completed.")
+        LOGGER.info("Prediction completed.")
         # Generate Figures
         make_figures(
             predictions=pred_results,
