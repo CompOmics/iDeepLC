@@ -311,11 +311,12 @@ def df_to_matrix(seqs: Union[str, List[str]],
 
 def reform_seq(seq: str, mod: str) -> str:
     """Reform a sequence by adding modifications in the correct positions."""
+
+    if not mod or isinstance(mod, float):
+        return seq
+
     mod_list = [m for m in mod.split('|')]
     mod_list_tuple = []
-
-    if not mod:
-        return seq
 
     while mod_list:
         mod_list_tuple.append((int(mod_list.pop(0)), mod_list.pop(0)))

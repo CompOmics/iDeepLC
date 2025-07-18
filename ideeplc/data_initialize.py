@@ -4,7 +4,7 @@ from typing import Tuple, Optional, Union
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from ideeplc.utilities import df_to_matrix
+from ideeplc.utilities import df_to_matrix, reform_seq
 
 LOGGER = logging.getLogger(__name__)
 # Making the pytorch dataset
@@ -48,12 +48,17 @@ def data_initialize(
     if 'seq' not in df.columns:
         LOGGER.error(f"CSV file must contain a 'seq' column with peptide sequences.")
         raise ValueError("Missing 'seq' column in the CSV file.")
+    if 'modifications' not in df.columns:
+        LOGGER.error("CSV file must contain a 'modifications' column with peptide modifications.")
+        raise ValueError("Missing 'modifications' column in the CSV file.")
 
-    raw_peptides = df['seq'].tolist()
-    LOGGER.info(f"Loaded {len(raw_peptides)} peptides sequences from the file.")
+    reformed_peptides = [
+        reform_seq(seq, mod) for seq, mod in zip(df['seq'], df['modifications'])
+    ]
+    LOGGER.info(f"Loaded and reformed {len(reformed_peptides)} peptides sequences from the file.")
     try:
         # Convert sequences to matrix format
-        sequences, tr, errors = df_to_matrix(raw_peptides, df)
+        sequences, tr, errors = df_to_matrix(reformed_peptides, df)
     except Exception as e:
         LOGGER.error(f"Error converting sequences to matrix format: {e}")
         raise
