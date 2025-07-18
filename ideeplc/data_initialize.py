@@ -7,6 +7,8 @@ from torch.utils.data import Dataset, DataLoader
 from ideeplc.utilities import df_to_matrix, reform_seq
 
 LOGGER = logging.getLogger(__name__)
+
+
 # Making the pytorch dataset
 class MyDataset(Dataset):
     def __init__(self, sequences: np.ndarray, retention: np.ndarray) -> None:
@@ -21,8 +23,7 @@ class MyDataset(Dataset):
 
 
 def data_initialize(
-        csv_path: str,
-        **kwargs
+    csv_path: str, **kwargs
 ) -> Union[Tuple[MyDataset, np.ndarray], Tuple[MyDataset, np.ndarray]]:
     """
     Initialize peptides matrices based on a CSV file containing raw peptide sequences.
@@ -45,17 +46,21 @@ def data_initialize(
         LOGGER.error(f"Error reading {csv_path}: {e}")
         raise
 
-    if 'seq' not in df.columns:
+    if "seq" not in df.columns:
         LOGGER.error(f"CSV file must contain a 'seq' column with peptide sequences.")
         raise ValueError("Missing 'seq' column in the CSV file.")
-    if 'modifications' not in df.columns:
-        LOGGER.error("CSV file must contain a 'modifications' column with peptide modifications.")
+    if "modifications" not in df.columns:
+        LOGGER.error(
+            "CSV file must contain a 'modifications' column with peptide modifications."
+        )
         raise ValueError("Missing 'modifications' column in the CSV file.")
 
     reformed_peptides = [
-        reform_seq(seq, mod) for seq, mod in zip(df['seq'], df['modifications'])
+        reform_seq(seq, mod) for seq, mod in zip(df["seq"], df["modifications"])
     ]
-    LOGGER.info(f"Loaded and reformed {len(reformed_peptides)} peptides sequences from the file.")
+    LOGGER.info(
+        f"Loaded and reformed {len(reformed_peptides)} peptides sequences from the file."
+    )
     try:
         # Convert sequences to matrix format
         sequences, tr, errors = df_to_matrix(reformed_peptides, df)

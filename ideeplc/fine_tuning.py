@@ -12,8 +12,19 @@ class iDeepLCFineTuner:
     A class to fine-tune the iDeepLC model on a new dataset.
     """
 
-    def __init__(self, model, train_data, loss_function, device="cpu", learning_rate=0.001, epochs=10, batch_size=256,
-                  validation_data=None, validation_split=0.1, patience=5):
+    def __init__(
+        self,
+        model,
+        train_data,
+        loss_function,
+        device="cpu",
+        learning_rate=0.001,
+        epochs=10,
+        batch_size=256,
+        validation_data=None,
+        validation_split=0.1,
+        patience=5,
+    ):
         """
         Initialize the fine-tuner with the model and data loaders.
 
@@ -82,13 +93,15 @@ class iDeepLCFineTuner:
             # Split the training data into training and validation sets
             train_size = int((1 - self.validation_split) * len(self.train_data))
             val_size = len(self.train_data) - train_size
-            train_dataset, val_dataset = torch.utils.data.random_split(self.train_data, [train_size, val_size])
+            train_dataset, val_dataset = torch.utils.data.random_split(
+                self.train_data, [train_size, val_size]
+            )
             dataloader_train = self.prepare_data(train_dataset)
             dataloader_val = self.prepare_data(val_dataset, shuffle=False)
         LOGGER.info(f"Training on {len(dataloader_train.dataset)} samples.")
 
         best_model = copy.deepcopy(self.model)
-        best_loss = float('inf')
+        best_loss = float("inf")
         patience_counter = 0
 
         for epoch in range(self.epochs):
@@ -114,7 +127,9 @@ class iDeepLCFineTuner:
 
             # Validate the model after each epoch
             if dataloader_val:
-                val_loss, _, _, _ = validate(self.model, dataloader_val, loss_fn, self.device)
+                val_loss, _, _, _ = validate(
+                    self.model, dataloader_val, loss_fn, self.device
+                )
                 if val_loss < best_loss:
                     best_loss = val_loss
                     best_model = copy.deepcopy(self.model)
@@ -129,5 +144,3 @@ class iDeepLCFineTuner:
 
         LOGGER.info("Fine-tuning complete.")
         return best_model
-
-

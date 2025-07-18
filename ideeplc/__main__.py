@@ -6,7 +6,9 @@ import sys
 from pathlib import Path
 
 from ideeplc import __version__
-from ideeplc.ideeplc_core import main as run_ideeplc  # Assumes main logic is exposed here
+from ideeplc.ideeplc_core import (
+    main as run_ideeplc,
+)  # Assumes main logic is exposed here
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text
@@ -39,26 +41,49 @@ def _argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="iDeepLC: Deep learning-based retention time prediction",
         formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=42),
-        epilog=("Example usage: python -m ideeplc --input peptides.csv --save --finetune\n ")
+        epilog=(
+            "Example usage: python -m ideeplc --input peptides.csv --save --finetune\n "
+        ),
     )
-    parser.add_argument("-i", "--input", type=str, required=True,
-                        help="Path to the CSV file containing the peptide sequences.")
-    parser.add_argument("-s", "--save", action="store_true",
-                        help="Flag to save results to disk.")
-    parser.add_argument("-f", "--finetune", action="store_true",
-                        help="Flag to enable fine-tuning of the model.")
-    parser.add_argument("-l", "--log_level", type=str, default="info",
-                        choices=LOG_MAPPING.keys(),
-                        help="Logging level (default: info).")
-    parser.add_argument("-c", "--calibrate", action="store_true",
-                        help="Flag to enable calibration of the model predictions.")
+    parser.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        required=True,
+        help="Path to the CSV file containing the peptide sequences.",
+    )
+    parser.add_argument(
+        "-s", "--save", action="store_true", help="Flag to save results to disk."
+    )
+    parser.add_argument(
+        "-f",
+        "--finetune",
+        action="store_true",
+        help="Flag to enable fine-tuning of the model.",
+    )
+    parser.add_argument(
+        "-l",
+        "--log_level",
+        type=str,
+        default="info",
+        choices=LOG_MAPPING.keys(),
+        help="Logging level (default: info).",
+    )
+    parser.add_argument(
+        "-c",
+        "--calibrate",
+        action="store_true",
+        help="Flag to enable calibration of the model predictions.",
+    )
     return parser
 
 
 def _setup_logging(level: str, log_file: Path = None):
     """Set up the logging configuration."""
     if level not in LOG_MAPPING:
-        raise ValueError(f"Invalid log level '{level}'. Choose from {', '.join(LOG_MAPPING)}")
+        raise ValueError(
+            f"Invalid log level '{level}'. Choose from {', '.join(LOG_MAPPING)}"
+        )
     handlers = [RichHandler(rich_tracebacks=True, console=CONSOLE, show_path=False)]
     if log_file:
         handlers.append(logging.FileHandler(log_file, mode="w", encoding="utf-8"))

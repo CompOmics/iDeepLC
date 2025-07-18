@@ -12,6 +12,7 @@ from ideeplc.predict import predict
 from ideeplc.figure import make_figures
 from ideeplc.fine_tuning import iDeepLCFineTuner
 from importlib.resources import files
+
 # Logging configuration
 LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +57,9 @@ def main(args):
         # Load pre-trained model
         LOGGER.info("Loading pre-trained model")
         best_model_path, model_dir, pretrained_model = get_model_save_path()
-        model.load_state_dict(torch.load(pretrained_model, map_location=device), strict=False)
+        model.load_state_dict(
+            torch.load(pretrained_model, map_location=device), strict=False
+        )
         loss_function = nn.L1Loss()
 
         if args.finetune:
@@ -71,22 +74,34 @@ def main(args):
                 batch_size=config["batch_size"],
                 validation_data=None,  # No validation data provided for prediction
                 validation_split=0.1,
-                patience=5
+                patience=5,
             )
             model = fine_tuner.fine_tune(layers_to_freeze=config["layers_to_freeze"])
 
-        dataloader_input = DataLoader(matrix_input, batch_size=config["batch_size"], shuffle=False)
+        dataloader_input = DataLoader(
+            matrix_input, batch_size=config["batch_size"], shuffle=False
+        )
         # Prediction on provided data
         LOGGER.info("Starting prediction")
-        pred_loss, pred_cor, pred_results, ground_truth = predict(model=model, dataloader_input=dataloader_input,
-                                                                  loss_fn=loss_function,
-                                                                  device=device,
-                                                                  calibrate=args.calibrate,
-                                                                  input_file=args.input, save_results=args.save)
+        pred_loss, pred_cor, pred_results, ground_truth = predict(
+            model=model,
+            dataloader_input=dataloader_input,
+            loss_fn=loss_function,
+            device=device,
+            calibrate=args.calibrate,
+            input_file=args.input,
+            save_results=args.save,
+        )
         LOGGER.info(f"Prediction completed.")
         # Generate Figures
-        make_figures(predictions=pred_results, ground_truth=ground_truth,
-                     input_file=args.input, calibrated=args.calibrate, finetuned=args.finetune, save_results=args.save)
+        make_figures(
+            predictions=pred_results,
+            ground_truth=ground_truth,
+            input_file=args.input,
+            calibrated=args.calibrate,
+            finetuned=args.finetune,
+            save_results=args.save,
+        )
 
     except Exception as e:
         LOGGER.error(f"An error occurred during execution: {e}")

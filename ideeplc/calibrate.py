@@ -7,6 +7,7 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
+
 class SplineTransformerCalibration:
     """Spline Transformer Calibration for Retention Time Prediction."""
 
@@ -19,7 +20,12 @@ class SplineTransformerCalibration:
         self._spline_model = None
         self._linear_model_right = None
 
-    def fit(self, measured_tr: np.ndarray, predicted_tr: np.ndarray, simplified: bool = False):
+    def fit(
+        self,
+        measured_tr: np.ndarray,
+        predicted_tr: np.ndarray,
+        simplified: bool = False,
+    ):
         """
         Fit a SplineTransformer model to the measured and predicted retention times.
 
@@ -40,8 +46,12 @@ class SplineTransformerCalibration:
 
         # Check if the lengths match
         if len(measured_tr) != len(predicted_tr):
-            LOGGER.error("Measured and predicted retention times must have the same length.")
-            raise ValueError("Measured and predicted retention times must have the same length.")
+            LOGGER.error(
+                "Measured and predicted retention times must have the same length."
+            )
+            raise ValueError(
+                "Measured and predicted retention times must have the same length."
+            )
 
         # Fit a SplineTransformer model
         if simplified:
@@ -54,7 +64,9 @@ class SplineTransformerCalibration:
             linear_model_right = linear_model
         else:
             LOGGER.info("Using SplineTransformer with more knots for calibration.")
-            spline = SplineTransformer(degree=4, n_knots=int(len(measured_tr) / 500) + 5)
+            spline = SplineTransformer(
+                degree=4, n_knots=int(len(measured_tr) / 500) + 5
+            )
             spline_model = make_pipeline(spline, LinearRegression())
             spline_model.fit(predicted_tr.reshape(-1, 1), measured_tr)
 
@@ -83,7 +95,6 @@ class SplineTransformerCalibration:
         self._fit = True
         LOGGER.info("Calibration fitting completed successfully.")
 
-
     def transform(self, tr: np.ndarray) -> np.ndarray:
         """
         Transform the predicted retention times using the fitted SplineTransformer model.
@@ -99,13 +110,17 @@ class SplineTransformerCalibration:
             The calibrated retention times.
         """
         if not self._fit:
-            LOGGER.error("Calibration model has not been fitted yet. Call fit() before transform().")
-            raise RuntimeError("Calibration model has not been fitted yet. Call fit() before transform().")
+            LOGGER.error(
+                "Calibration model has not been fitted yet. Call fit() before transform()."
+            )
+            raise RuntimeError(
+                "Calibration model has not been fitted yet. Call fit() before transform()."
+            )
 
         # if tr.shape[0] == 0:
         #     return np.array([])
         tr_array = np.array(tr)
-        tr = tr_array.reshape(-1,1)
+        tr = tr_array.reshape(-1, 1)
 
         # Get spline predictions and linear extrapolation predictions
         y_pred_spline = self._spline_model.predict(tr)
@@ -120,10 +135,10 @@ class SplineTransformerCalibration:
         cal_preds = np.copy(y_pred_spline)
         cal_preds[~within_range & (tr.ravel() < self._calibrate_min)] = y_pred_left[
             ~within_range & (tr.ravel() < self._calibrate_min)
-            ]
+        ]
         cal_preds[~within_range & (tr.ravel() > self._calibrate_max)] = y_pred_right[
             ~within_range & (tr.ravel() > self._calibrate_max)
-            ]
+        ]
 
         LOGGER.info("Calibration transformation completed successfully.")
         return np.array(cal_preds)
