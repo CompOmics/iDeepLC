@@ -53,6 +53,9 @@ def data_initialize(
             "CSV file must contain a 'modifications' column with peptide modifications."
         )
         raise ValueError("Missing 'modifications' column in the CSV file.")
+    if 'tr' not in df.columns:
+        LOGGER.error("CSV file must contain a 'tr' column with retention times.")
+        raise ValueError("Missing 'tr' column in the CSV file.")
 
     reformed_peptides = [
         reform_seq(seq, mod) for seq, mod in zip(df["seq"], df["modifications"])
