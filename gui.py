@@ -3,8 +3,16 @@ from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 from ideeplc.ideeplc_core import main as run_ideeplc
 import argparse
-import sys
 import os
+import requests
+
+
+PRIMARY_BG = "#1e1e2e"
+ACCENT = "#2d2d46"
+TEXT_COLOR = "#f5f5f5"
+BUTTON_COLOR = "#313244"
+BUTTON_HOVER = "#45475a"
+FONT = ("Segoe UI", 11)
 
 
 def run_prediction(input_path, calibrate, finetune):
@@ -33,53 +41,63 @@ def browse_file(entry_field):
         entry_field.insert(0, filepath)
 
 
+def style_button(btn):
+    btn.configure(bg=BUTTON_COLOR, fg=TEXT_COLOR, activebackground=BUTTON_HOVER,
+                  relief="flat", font=FONT, cursor="hand2")
+    btn.bind("<Enter>", lambda e: btn.config(bg=BUTTON_HOVER))
+    btn.bind("<Leave>", lambda e: btn.config(bg=BUTTON_COLOR))
+
+
 def launch_gui():
     root = tk.Tk()
     root.title("iDeepLC Predictor")
-    root.geometry("600x400")
-    root.configure(bg="#f0f0f0")
+    root.geometry("700x550")
+    root.configure(bg=PRIMARY_BG)
 
     # Load and display the image
     img_url = "https://github.com/user-attachments/assets/86e9b793-39be-4f62-8119-5c6a333af487"
     img_path = "logo_temp.jpg"
-
-    # Download if not exists (for local runs)
     if not os.path.exists(img_path):
-        import requests
         with open(img_path, "wb") as f:
             f.write(requests.get(img_url).content)
 
     image = Image.open(img_path)
-    image = image.resize((410,240))
+    image = image.resize((450, 200), Image.LANCZOS)
     photo = ImageTk.PhotoImage(image)
-
-    image_label = tk.Label(root, image=photo, bg="#f0f0f0")
+    image_label = tk.Label(root, image=photo, bg=PRIMARY_BG)
     image_label.image = photo
-    image_label.pack(pady=(10, 0))
+    image_label.pack(pady=(20, 10))
 
-    # Input file selection
-    frame = tk.Frame(root, bg="#f0f0f0")
+    # Input frame
+    frame = tk.Frame(root, bg=PRIMARY_BG)
     frame.pack(pady=10)
 
-    tk.Label(frame, text="Input CSV:", bg="#f0f0f0").grid(row=0, column=0, padx=5, sticky='e')
-    input_entry = tk.Entry(frame, width=40)
-    input_entry.grid(row=0, column=1, padx=5)
-    tk.Button(frame, text="Browse", command=lambda: browse_file(input_entry)).grid(row=0, column=2, padx=5)
+    tk.Label(frame, text="Input CSV:", bg=PRIMARY_BG, fg=TEXT_COLOR, font=FONT).grid(row=0, column=0, padx=10)
+    input_entry = tk.Entry(frame, width=45, font=FONT, bg="#2e2e3f", fg=TEXT_COLOR, insertbackground=TEXT_COLOR,
+                           relief="flat")
+    input_entry.grid(row=0, column=1, padx=10)
+    browse_btn = tk.Button(frame, text="Browse", command=lambda: browse_file(input_entry))
+    style_button(browse_btn)
+    browse_btn.grid(row=0, column=2, padx=10)
 
-    # Options
-    options_frame = tk.Frame(root, bg="#f0f0f0")
-    options_frame.pack(pady=10)
+    # Options frame
+    options_frame = tk.Frame(root, bg=PRIMARY_BG)
+    options_frame.pack(pady=15)
 
     calibrate_var = tk.BooleanVar()
     finetune_var = tk.BooleanVar()
 
-    tk.Checkbutton(options_frame, text="Calibrate", variable=calibrate_var, bg="#f0f0f0").pack(side=tk.LEFT, padx=10)
-    tk.Checkbutton(options_frame, text="Fine-tune", variable=finetune_var, bg="#f0f0f0").pack(side=tk.LEFT, padx=10)
+    tk.Checkbutton(options_frame, text="Calibrate", variable=calibrate_var,
+                   bg=PRIMARY_BG, fg=TEXT_COLOR, selectcolor=ACCENT, font=FONT, activebackground=PRIMARY_BG).pack(side=tk.LEFT, padx=20)
+    tk.Checkbutton(options_frame, text="Fine-tune", variable=finetune_var,
+                   bg=PRIMARY_BG, fg=TEXT_COLOR, selectcolor=ACCENT, font=FONT, activebackground=PRIMARY_BG).pack(side=tk.LEFT, padx=20)
 
     # Run button
-    run_btn = tk.Button(root, text="Run Prediction", bg="#4CAF50", fg="white", font=("Arial", 12, "bold"),
+    run_btn = tk.Button(root, text="Run Prediction",
                         command=lambda: run_prediction(input_entry.get(), calibrate_var.get(), finetune_var.get()))
-    run_btn.pack(pady=20)
+    style_button(run_btn)
+    run_btn.config(font=("Segoe UI", 12, "bold"), width=20)
+    run_btn.pack(pady=30)
 
     root.mainloop()
 
