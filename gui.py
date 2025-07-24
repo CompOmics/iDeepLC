@@ -6,10 +6,12 @@ import argparse
 import os
 import requests
 
-
+# Colors and fonts
 PRIMARY_BG = "#1e1e2e"
 ACCENT = "#2d2d46"
 TEXT_COLOR = "#f5f5f5"
+TOOLTIP_BG = "#2a2a3b"
+TOOLTIP_TEXT = "#ffffff"
 BUTTON_COLOR = "#313244"
 BUTTON_HOVER = "#45475a"
 FONT = ("Segoe UI", 11)
@@ -23,10 +25,13 @@ def create_tooltip(widget, text):
     label = tk.Label(
         tooltip,
         text=text,
-        background="#ffffe0",
+        background=TOOLTIP_BG,
+        foreground=TOOLTIP_TEXT,
         relief="solid",
         borderwidth=1,
-        font=("Segoe UI", 9),
+        font=FONT,
+        padx=6,
+        pady=2,
     )
     label.pack()
 
@@ -68,6 +73,7 @@ def browse_file(entry_field):
         entry_field.delete(0, tk.END)
         entry_field.insert(0, filepath)
 
+
 def load_icon(path_or_url, size=(18, 18)):
     if path_or_url.startswith("http"):
         fname = os.path.basename(path_or_url)
@@ -77,6 +83,8 @@ def load_icon(path_or_url, size=(18, 18)):
         path_or_url = fname
     icon = Image.open(path_or_url).resize(size, Image.LANCZOS)
     return ImageTk.PhotoImage(icon)
+
+
 def style_button(btn):
     btn.configure(
         bg=BUTTON_COLOR,
