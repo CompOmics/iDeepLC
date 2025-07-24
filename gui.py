@@ -1,9 +1,9 @@
 import tkinter as tk
+from io import BytesIO
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 from ideeplc.ideeplc_core import main as run_ideeplc
 import argparse
-import os
 import requests
 
 # Colors and fonts
@@ -74,17 +74,6 @@ def browse_file(entry_field):
         entry_field.insert(0, filepath)
 
 
-def load_icon(path_or_url, size=(18, 18)):
-    if path_or_url.startswith("http"):
-        fname = os.path.basename(path_or_url)
-        if not os.path.exists(fname):
-            with open(fname, "wb") as f:
-                f.write(requests.get(path_or_url).content)
-        path_or_url = fname
-    icon = Image.open(path_or_url).resize(size, Image.LANCZOS)
-    return ImageTk.PhotoImage(icon)
-
-
 def style_button(btn):
     btn.configure(
         bg=BUTTON_COLOR,
@@ -106,12 +95,8 @@ def launch_gui():
 
     # Load and display the image
     img_url = "https://github.com/user-attachments/assets/86e9b793-39be-4f62-8119-5c6a333af487"
-    img_path = "logo_temp.jpg"
-    with open(img_path, "wb") as f:
-        f.write(requests.get(img_url).content)
-
-    image = Image.open(img_path)
-    image = image.resize((450, 200), Image.LANCZOS)
+    image = requests.get(img_url).content
+    image = Image.open(BytesIO(image)).resize((450, 200))
     photo = ImageTk.PhotoImage(image)
     image_label = tk.Label(root, image=photo, bg=PRIMARY_BG)
     image_label.image = photo
