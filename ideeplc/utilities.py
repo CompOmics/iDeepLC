@@ -1,3 +1,4 @@
+import io
 from typing import List, Tuple, Dict, Union, Optional, Any
 
 import numpy as np
@@ -5,7 +6,7 @@ import pandas as pd
 import tqdm
 from numpy import ndarray
 from pyteomics import proforma, mass
-import importlib.resources as pkg_resources
+from importlib.resources import files
 import ideeplc.structure_feature
 
 
@@ -65,10 +66,8 @@ def aa_atomic_composition_array() -> Dict[str, np.ndarray]:
 
 def aa_chemical_feature() -> Dict[str, np.ndarray]:
     """Get chemical features for amino acids."""
-    with pkg_resources.files(ideeplc.structure_feature).joinpath("aa_stan.csv").open(
-        "rb"
-    ) as f:
-        df_aminoacids = pd.read_csv(f)
+    content = files(ideeplc.structure_feature).joinpath("aa_stan.csv").read_bytes()
+    df_aminoacids = pd.read_csv(io.BytesIO(content))
     # Convert the dataframe to a dictionary
     amino_acids = df_aminoacids.set_index("AA").T.to_dict("list")
     # Convert the dictionary to a dictionary of numpy arrays for each AA
@@ -80,10 +79,8 @@ def aa_chemical_feature() -> Dict[str, np.ndarray]:
 
 def mod_chemical_features() -> Dict[str, Dict[str, Dict[str, float]]]:
     """Get modification features."""
-    with pkg_resources.files(ideeplc.structure_feature).joinpath("ptm_stan.csv").open(
-        "rb"
-    ) as f:
-        df = pd.read_csv(f)
+    content = files(ideeplc.structure_feature).joinpath("ptm_stan.csv").read_bytes()
+    df = pd.read_csv(io.BytesIO(content))
     # Convert the dataframe to a dictionary and transpose it
     df = df.set_index("name").T
     # Convert the DataFrame to a dictionary of modifications with their chemical features
