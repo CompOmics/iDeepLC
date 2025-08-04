@@ -2,7 +2,9 @@ import datetime
 import logging
 import torch
 from pathlib import Path
+import sys
 from torch import nn
+import os
 from torch.utils.data import DataLoader
 from ideeplc.model import MyNet
 from ideeplc.config import get_config
@@ -15,7 +17,20 @@ from importlib.resources import files
 # Logging configuration
 LOGGER = logging.getLogger(__name__)
 
+def setup_logging():
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
 
+    file_handler = logging.FileHandler(log_dir / "ideeplc.log")
+    console_handler = logging.StreamHandler()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[file_handler, console_handler]
+    )
+
+setup_logging()
 def get_model_save_path():
     """
     Determines the correct directory and filename for saving the model.
@@ -26,10 +41,18 @@ def get_model_save_path():
         tuple: (model_save_path, model_dir)
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
-    model_dir = Path(f"ideeplc/models/{timestamp}")
-    pretrained_path = files("ideeplc.models").joinpath("pretrained_model.pth")
+    model_dir = Path("ideeplc/models") / timestamp
     model_name = "pretrained_model.pth"
-    return model_dir / model_name, model_dir, pretrained_path
+
+    if getattr(sys, "frozen", False):
+        # If frozen (PyInstaller)
+        base_path = Path(sys._MEIPASS)
+        model_path = base_path / "ideeplc" / "models" / model_name
+    else:
+        # If normal Python environment
+        model_path = files("ideeplc.models").joinpath(model_name)
+
+    return model_path, model_dir, model_path
 
 
 def main(args):
