@@ -67,7 +67,6 @@ def make_figures(
             output_path.parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(output_path, dpi=300)
 
-        plt.show()
         plt.close(fig)
     except Exception as e:
         LOGGER.error(f"Error in generating scatter plot: {e}")
