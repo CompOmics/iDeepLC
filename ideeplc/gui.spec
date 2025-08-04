@@ -9,7 +9,7 @@ from pathlib import Path
 os.environ["MODIN_ENGINE"] = "python"
 
 app_name = "iDeepLC"
-script_path  = "gui.py"
+script_path = "gui.py"
 icon_path = None
 
 packages = ["PIL", "requests", "torch", "ideeplc", "lxml", "pyteomics", "tqdm"]
@@ -28,19 +28,17 @@ for pkg in packages:
 # Explicitly include the pretrained model
 
 
-
-
 a = Analysis(
     [script_path],
     pathex=[os.getcwd()],
     binaries=binaries,
     datas=[
-        ('models/pretrained_model.pth', 'ideeplc/models'),
-        ('models/*.pth', 'ideeplc/models'),
-        ('structure_feature/aa_stan.csv', 'ideeplc/structure_feature'),
-        ('structure_feature/ptm_stan.csv', 'ideeplc/structure_feature'),
+        ("models/pretrained_model.pth", "ideeplc/models"),
+        ("models/*.pth", "ideeplc/models"),
+        ("structure_feature/aa_stan.csv", "ideeplc/structure_feature"),
+        ("structure_feature/ptm_stan.csv", "ideeplc/structure_feature"),
     ],
-    hiddenimports=['scipy.special.cython_special'],
+    hiddenimports=["scipy.special.cython_special"],
     hooksconfig={},
     noarchive=False,
     cipher=None,
@@ -55,13 +53,17 @@ pyz = PYZ(a.pure, a.zipped_data)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True,
     name=app_name,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console=True,  # GUI mode
 )
 
