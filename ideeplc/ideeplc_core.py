@@ -4,7 +4,6 @@ import torch
 from pathlib import Path
 import sys
 from torch import nn
-import os
 from torch.utils.data import DataLoader
 from ideeplc.model import MyNet
 from ideeplc.config import get_config
@@ -17,6 +16,7 @@ from importlib.resources import files
 # Logging configuration
 LOGGER = logging.getLogger(__name__)
 
+
 def setup_logging():
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
@@ -26,11 +26,14 @@ def setup_logging():
 
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[file_handler, console_handler]
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[file_handler, console_handler],
     )
 
+
 setup_logging()
+
+
 def get_model_save_path():
     """
     Determines the correct directory and filename for saving the model.
