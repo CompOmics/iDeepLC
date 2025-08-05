@@ -13,6 +13,7 @@ on:
     types: [published]
 
 jobs:
+# ---------- PYPI PUBLISH JOB ----------
   python-package:
     runs-on: ubuntu-latest
     permissions:
@@ -45,4 +46,30 @@ jobs:
 
       - name: Publish release distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        
+
+  # ---------- WINDOWS EXE BUILD JOB ----------
+  build-windows-exe:
+    runs-on: windows-latest
+    needs: python-package  # Wait for PyPI job
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller pillow requests torch lxml pyteomics tqdm
+
+      - name: Build Windows EXE with PyInstaller
+        run: |
+          pyinstaller gui.spec --noconfirm 
+
+      - name: Upload built EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: iDeepLC-windows-exe
+          path: dist/
