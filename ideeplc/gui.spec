@@ -1,9 +1,12 @@
 import os
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from PyInstaller.utils.hooks import collect_all, collect_data_files
 from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
 from PyInstaller.building.datastruct import TOC
-from pathlib import Path
+
 from ideeplc import __version__ as version
 
 
