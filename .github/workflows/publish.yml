@@ -67,7 +67,7 @@ jobs:
       - name: Build Windows EXE with PyInstaller
         run: |
           pyinstaller ideeplc/gui.spec --noconfirm
-        working-directory: ${{ github.workspace }}
+#         working-directory: ${{ github.workspace }}
 
       - name: Upload EXE to Actions artifact
         uses: actions/upload-artifact@v4
