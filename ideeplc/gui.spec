@@ -1,27 +1,27 @@
 import os
 import sys
 from pathlib import Path
+
+from PyInstaller.utils.hooks import collect_all
+from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
+
+# Ensure ideeplc is discoverable
 project_root = Path(os.path.abspath(sys.argv[0])).parent.parent
 sys.path.insert(0, str(project_root))
 
-from PyInstaller.utils.hooks import collect_all, collect_data_files
-from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
-from PyInstaller.building.datastruct import TOC
-
 from ideeplc import __version__ as version
-
 
 os.environ["MODIN_ENGINE"] = "python"
 
-app_name = "iDeepLC"
-app_name = f"{app_name}_{version}"
+app_name = f"iDeepLC_{version}"
 script_path = "gui.py"
-icon_path = "ideeplc/logo/ideeplc.ico"
+icon_path = str(project_root / "ideeplc" / "logo" / "ideeplc.ico")
 
 packages = ["PIL", "requests", "torch", "ideeplc", "lxml", "pyteomics", "tqdm"]
 hiddenimports = set()
 datas, binaries = [], []
 
+# Collect data and binaries from all necessary packages
 for pkg in packages:
     try:
         d, b, h = collect_all(pkg)
@@ -31,20 +31,22 @@ for pkg in packages:
     except ImportError:
         continue
 
-# Explicitly include the pretrained model
+# Explicitly include your required data files
+extra_datas = [
+    (str(project_root / "ideeplc" / "models" / "pretrained_model.pth"), "ideeplc/models"),
+    (str(project_root / "ideeplc" / "structure_feature" / "aa_stan.csv"), "ideeplc/structure_feature"),
+    (str(project_root / "ideeplc" / "structure_feature" / "ptm_stan.csv"), "ideeplc/structure_feature"),
+]
 
+datas.extend(extra_datas)
 
+# Analysis step
 a = Analysis(
     [script_path],
     pathex=[os.getcwd()],
     binaries=binaries,
-    datas=[
-        ("ideeplc/models/pretrained_model.pth", "ideeplc/models"),
-        ("ideeplc/models/*.pth", "ideeplc/models"),
-        ("ideeplc/structure_feature/aa_stan.csv", "ideeplc/structure_feature"),
-        ("ideeplc/structure_feature/ptm_stan.csv", "ideeplc/structure_feature"),
-    ],
-    hiddenimports=["scipy.special.cython_special"],
+    datas=datas,
+    hiddenimports=list(hiddenimports) + ["scipy.special.cython_special"],
     hooksconfig={},
     noarchive=False,
     cipher=None,
@@ -56,6 +58,7 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data)
 
+# Executable
 exe = EXE(
     pyz,
     a.scripts,
@@ -68,10 +71,11 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,  # GUI mode
+    console=True,  # set to False if you want to hide the console
     icon=icon_path,
 )
 
+# Bundle everything
 coll = COLLECT(
     exe,
     a.binaries,
