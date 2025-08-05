@@ -12,7 +12,7 @@ os.environ["MODIN_ENGINE"] = "python"
 app_name = "iDeepLC"
 app_name = f"{app_name}_{version}"
 script_path = "gui.py"
-icon_path = "ideeplc.ico"
+icon_path = "ideeplc/logo/ideeplc.ico"
 
 packages = ["PIL", "requests", "torch", "ideeplc", "lxml", "pyteomics", "tqdm"]
 hiddenimports = set()
@@ -35,10 +35,10 @@ a = Analysis(
     pathex=[os.getcwd()],
     binaries=binaries,
     datas=[
-        ("models/pretrained_model.pth", "ideeplc/models"),
-        ("models/*.pth", "ideeplc/models"),
-        ("structure_feature/aa_stan.csv", "ideeplc/structure_feature"),
-        ("structure_feature/ptm_stan.csv", "ideeplc/structure_feature"),
+        ("ideeplc/models/pretrained_model.pth", "ideeplc/models"),
+        ("ideeplc/models/*.pth", "ideeplc/models"),
+        ("ideeplc/structure_feature/aa_stan.csv", "ideeplc/structure_feature"),
+        ("ideeplc/structure_feature/ptm_stan.csv", "ideeplc/structure_feature"),
     ],
     hiddenimports=["scipy.special.cython_special"],
     hooksconfig={},
