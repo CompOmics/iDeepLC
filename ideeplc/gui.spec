@@ -4,13 +4,15 @@ from PyInstaller.utils.hooks import collect_all, collect_data_files
 from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
 from PyInstaller.building.datastruct import TOC
 from pathlib import Path
+from ideeplc import __version__ as version
 
 
 os.environ["MODIN_ENGINE"] = "python"
 
 app_name = "iDeepLC"
+app_name = f"{app_name}_{version}"
 script_path = "gui.py"
-icon_path = None
+icon_path = "ideeplc.ico"
 
 packages = ["PIL", "requests", "torch", "ideeplc", "lxml", "pyteomics", "tqdm"]
 hiddenimports = set()
@@ -62,9 +64,8 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
     console=True,  # GUI mode
+    icon=icon_path,
 )
 
 coll = COLLECT(
@@ -73,6 +74,5 @@ coll = COLLECT(
     a.zipfiles,
     a.datas,
     strip=False,
-    upx=True,
     name=app_name,
 )
