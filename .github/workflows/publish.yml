@@ -62,14 +62,21 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pillow requests torch lxml pyteomics tqdm
+          pip install pyinstaller
 
       - name: Build Windows EXE with PyInstaller
         run: |
-          pyinstaller gui.spec --noconfirm 
+          pyinstaller ideeplc/gui.spec --noconfirm
 
-      - name: Upload built EXE
+      - name: Upload EXE to Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: iDeepLC-windows-exe
-          path: dist/
+          path: dist/*.exe
+
+      - name: Upload EXE to GitHub Release page
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
