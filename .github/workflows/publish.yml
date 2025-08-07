@@ -50,6 +50,10 @@ jobs:
 
   # ---------- WINDOWS EXE BUILD JOB ----------
   build-windows-exe:
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+      contents: write
     runs-on: windows-latest
     needs: python-package  # Wait for PyPI job
     steps:
