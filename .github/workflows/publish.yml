@@ -51,11 +51,11 @@ jobs:
   build-windows-exe:
     runs-on: windows-latest
     needs: python-package  # Wait for PyPI job
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
       - uses: actions/checkout@v4
-    permissions:
-        # IMPORTANT: this permission is mandatory for trusted publishing
-        id-token: write
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -75,7 +75,7 @@ jobs:
       - name: Upload EXE to Actions artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iDeepLC-windows-exe
+          name: build-windows-exe
           path: dist/*.exe
 
       - name: Upload EXE to GitHub Release page
