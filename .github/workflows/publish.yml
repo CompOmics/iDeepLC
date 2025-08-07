@@ -19,7 +19,6 @@ jobs:
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
-      contents: write
 
     # Dedicated environments with protections for publishing are strongly recommended.
     # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
@@ -50,14 +49,13 @@ jobs:
 
   # ---------- WINDOWS EXE BUILD JOB ----------
   build-windows-exe:
-    permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
-      contents: write
     runs-on: windows-latest
     needs: python-package  # Wait for PyPI job
     steps:
       - uses: actions/checkout@v4
+    permissions:
+        # IMPORTANT: this permission is mandatory for trusted publishing
+        id-token: write
 
       - name: Set up Python
         uses: actions/setup-python@v5
