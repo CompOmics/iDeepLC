@@ -53,7 +53,7 @@ jobs:
     needs: python-package  # Wait for PyPI job
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
