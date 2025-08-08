@@ -19,27 +19,38 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
 ]
 dynamic = ["version"]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "matplotlib>=3.7,<4",
     "numpy>=1.25,<2",
     "pandas>=2,<3",
     "pyteomics>=4.5,<5",
-    "seaborn>=0.13,<1",
     "torch>=2.2.1,<3",
     "scikit-learn>=1.4,<2",
-    "tqdm>=4.65,<5",
     "rich>=13",
     "lxml>=4.9,<5",
 ]
 
 [project.optional-dependencies]
+
+gui = [
+    "pillow>=9.5",
+    "requests>=2.31",
+]
+
+
 dev = [
     "pytest",
     "pytest-cov",
     "sphinx",
     "black",
     "flake8"
+]
+
+[tool.setuptools.package-data]
+ideeplc = [
+  "models/*.pth",
+  "structure_feature/*.csv",
 ]
 
 [build-system]

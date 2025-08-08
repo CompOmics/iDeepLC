@@ -3,7 +3,6 @@ from typing import List, Tuple, Dict, Union, Optional, Any
 
 import numpy as np
 import pandas as pd
-import tqdm
 from numpy import ndarray
 from pyteomics import proforma, mass
 from importlib.resources import files
@@ -316,7 +315,7 @@ def df_to_matrix(
     aa_to_feature = aa_chemical_feature()
     amino_acids_atoms = aa_atomic_composition_array()
 
-    for idx, peptide in tqdm.tqdm(enumerate(seqs), total=len(seqs)):
+    for idx, peptide in enumerate(seqs):
         try:
             parsed_sequence, modifiers, sequence, modifications = peptide_parser(
                 peptide

@@ -17,7 +17,7 @@ app_name = f"iDeepLC_{version}"
 script_path = "gui.py"
 icon_path = str(project_root / "ideeplc" / "logo" / "ideeplc.ico")
 
-packages = ["PIL", "requests", "torch", "ideeplc", "lxml", "pyteomics", "tqdm"]
+packages = ["ideeplc"]
 hiddenimports = set()
 datas, binaries = [], []
 
