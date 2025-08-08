@@ -75,9 +75,11 @@ jobs:
           name: iDeepLC-gui
           path: dist/*.exe
 
-      - name: Upload EXE to GitHub Release page
-        uses: softprops/action-gh-release@v1
+
+      - name: Upload EXE to GitHub Release
+        uses: svenstaro/upload-release-action@v2
         with:
-          files: dist/*.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: dist/*.exe
+          file_glob: true
