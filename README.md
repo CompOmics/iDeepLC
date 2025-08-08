@@ -22,6 +22,33 @@ pip install iDeepLC
 
 ## Usage
 
+### Graphical user interface (GUI)
+
+If you prefer not to install Python or any dependencies, you can use the **standalone iDeepLC GUI** for Windows.  
+This is a single `.exe` file that runs without any installation.
+
+### How it works
+- When you run the `.exe`, a **terminal window** will first appear.  
+  This terminal acts as the **logger** for the GUI, showing progress and messages as the program runs.
+- Any **results** and **generated figures** will be saved **in the same folder** where the `.exe` file is located.
+
+### Running the executable
+1. Download the `.exe` file from the [latest release](https://github.com/CompOmics/iDeepLC/releases).
+2. Double-click the file to run it.
+3. If Windows shows a security message:  
+   - **"Windows protected your PC"** — this is a standard warning for applications not signed with a commercial certificate.  
+   - Click **More info** and then **Run anyway** to start iDeepLC.  
+     > *This warning appears because the executable is built by the developers without a paid code-signing certificate.  
+     > The file is safe if downloaded from the official GitHub release page.*
+
+
+<img src="gui_screenshot.png" alt="iDeepLC gui" width="600">
+
+
+
+
+### CLI
+
 The iDeepLC package provides a CLI for easy usage. Below are some examples:
 #### Prediction
 ```sh
