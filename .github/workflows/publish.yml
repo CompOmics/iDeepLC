@@ -42,9 +42,9 @@ jobs:
         with:
           name: python-package
           path: dist/*
-#
-#       - name: Publish release distributions to PyPI
-#         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   # ---------- WINDOWS EXE BUILD JOB ----------
   build-windows-exe:
