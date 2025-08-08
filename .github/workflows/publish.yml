@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --only-binary :all: . pyinstaller
+          pip install --only-binary :all: . pyinstaller pillow requests
 
       - name: Build Windows EXE with PyInstaller
         working-directory: ./ideeplc
@@ -76,15 +76,15 @@ jobs:
       - name: Upload EXE to artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iDeepLC-windows-exe
-          path: ideeplc/dist/*.exe
+          name: iDeepLC-gui
+          path: dist/*.exe
 
       - name: Upload EXE to GitHub Release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
-          file: ideeplc/dist/*.exe
+          file: dist/*.exe
           file_glob: true
 
       - name: Upload EXE to GitHub Release page
