@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller torch lxml pyteomics tqdm pillow requests numpy
+          pip install --only-binary :all: . pyinstaller
 
       - name: Build Windows EXE with PyInstaller
         working-directory: ./ideeplc
