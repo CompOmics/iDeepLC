@@ -42,8 +42,7 @@ This is a single `.exe` file that runs without any installation.
      > The file is safe if downloaded from the official GitHub release page.*
 
 
-<img src="gui_screenshot.png" alt="iDeepLC gui" width="600">
-
+<img width="700" height="630" alt="image" src="https://github.com/user-attachments/assets/1a31ea64-b377-4b86-945b-848fc7c9f123" />
 
 
 
