@@ -62,6 +62,13 @@ def _argument_parser() -> argparse.ArgumentParser:
         help="Flag to enable fine-tuning of the model.",
     )
     parser.add_argument(
+        "-m",
+        "--model",
+        type=str,
+        required=False,
+        help="Path to the pretrained model.",
+    )
+    parser.add_argument(
         "-l",
         "--log_level",
         type=str,
