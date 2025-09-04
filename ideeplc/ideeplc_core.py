@@ -55,7 +55,7 @@ def get_model_save_path():
         # If normal Python environment
         model_path = files("ideeplc.models").joinpath(model_name)
 
-    return model_path, model_dir, model_path
+    return model_path, model_dir
 
 
 def main(args):
@@ -81,7 +81,13 @@ def main(args):
 
         # Load pre-trained model
         LOGGER.info("Loading pre-trained model")
-        best_model_path, model_dir, pretrained_model = get_model_save_path()
+        pretrained_model, model_dir = get_model_save_path()
+        if args.model:
+            try:
+                pretrained_model = Path(args.model)
+            except Exception as e:
+                LOGGER.error(f"Invalid model path provided: {e}")
+                raise e
         model.load_state_dict(
             torch.load(pretrained_model, map_location=device), strict=False
         )
