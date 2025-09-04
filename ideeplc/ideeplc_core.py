@@ -84,6 +84,7 @@ def main(args):
         pretrained_model, model_dir = get_model_save_path()
         if args.model:
             try:
+                logging.info(f"Using user-specified model path: {args.model}")
                 pretrained_model = Path(args.model)
             except Exception as e:
                 LOGGER.error(f"Invalid model path provided: {e}")
