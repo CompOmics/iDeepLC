@@ -11,7 +11,7 @@ def test_predict():
     """Test the predict function."""
     # Mock data and model
     config = get_config()
-    best_model_path, model_dir, pretrained_model = get_model_save_path()
+    pretrained_model, model_dir = get_model_save_path()
 
     test_csv_path = "ideeplc/example_input/Hela_deeprt.csv"  # Path to a sample test CSV file
     matrix_input, x_shape = data_initialize(csv_path=test_csv_path)
