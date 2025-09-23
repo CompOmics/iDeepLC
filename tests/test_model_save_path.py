@@ -8,6 +8,6 @@ def test_get_model_save_path():
     pretrained_model, model_dir = get_model_save_path()
     assert isinstance(pretrained_model, Path), "Model path should be a Path object"
     assert isinstance(model_dir, Path), "Model directory should be a Path object"
-    assert pretrained_model.name == "pretrained_model.pth", "Model name should be 'pretrained_model.pth'"
-
-
+    assert (
+        pretrained_model.name == "pretrained_model.pth"
+    ), "Model name should be 'pretrained_model.pth'"
