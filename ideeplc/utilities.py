@@ -133,19 +133,51 @@ def encode_sequence_and_modification(
         if mods:
             for mod in mods:
                 name = mod.name
+
+                if name not in modifications_dict:
+                    raise KeyError(
+                        f"Modification '{name}' was not found in the modification feature dictionary."
+                    )
+                if aa not in modifications_dict[name]:
+                    raise KeyError(
+                        f"Modification '{name}' is not defined for amino acid '{aa}'."
+                    )
+
                 encoded[start_index : start_index + config.num_features, loc + 1] = (
                     list(modifications_dict[name][aa].values())
                 )
+
         if n_term:
             for mod in n_term:
                 name = f"{mod.name}(N-T)"
+
+                if name not in modifications_dict:
+                    raise KeyError(
+                        f"N-terminal modification '{name}' was not found in the modification feature dictionary."
+                    )
+                if sequence[0] not in modifications_dict[name]:
+                    raise KeyError(
+                        f"N-terminal modification '{name}' is not defined for amino acid '{sequence[0]}'."
+                    )
+
                 encoded[start_index : start_index + config.num_features, 1] = list(
                     modifications_dict[name][sequence[0]].values()
                 )
+
         if c_term:
             loc = len(parsed_sequence) + 1
             for mod in c_term:
                 name = mod.name
+
+                if name not in modifications_dict:
+                    raise KeyError(
+                        f"C-terminal modification '{name}' was not found in the modification feature dictionary."
+                    )
+                if sequence[-1] not in modifications_dict[name]:
+                    raise KeyError(
+                        f"C-terminal modification '{name}' is not defined for amino acid '{sequence[-1]}'."
+                    )
+
                 encoded[start_index : start_index + config.num_features, loc] = list(
                     modifications_dict[name][sequence[-1]].values()
                 )
@@ -272,7 +304,7 @@ def encode_sequence_one_hot(sequence: str) -> np.ndarray:
 def df_to_matrix(
     seqs: Union[str, List[str]], df: Optional[pd.DataFrame] = None
 ) -> (
-    tuple[ndarray, list[Any], list[list[str | list[str] | int | Exception]]]
+    tuple[ndarray, list[Any], list[list[str | list[str] | int | str | Exception]]]
     | ndarray
     | Any
 ):
@@ -280,30 +312,14 @@ def df_to_matrix(
     Convert a peptide or a list of peptides to their matrix representation.
 
     If a DataFrame with 'tr' and 'predictions' columns is also provided,
-    the function returns a tuple: (matrix, tr_values, prediction_values, errors).
+    the function returns a tuple: (matrix, tr_values, errors).
     Otherwise, it returns only the encoded matrix representation.
 
-    Parameters
-    ----------
-    seqs : str or List[str]
-        A single peptide sequence or a list of peptide sequences.
-    df : pd.DataFrame, optional
-        DataFrame with 'tr' and 'predictions' columns. Must align with the list of sequences.
-
-    Returns
-    -------
-    If `seqs` is a string:
-        np.ndarray : matrix representation of the peptide.
-    If `seqs` is a list and `df` is None:
-        np.ndarray : stacked matrix representation of all peptides.
-    If `seqs` is a list and `df` is given:
-        Tuple[np.ndarray, List[float], List] :
-            - stacked matrix
-            - list of tr values
-            - list of errors (with peptide, index, and exception)
+    :param seqs: A single peptide sequence or a list of peptide sequences.
+    :param df: DataFrame with 'tr' column. Must align with the list of sequences.
+    :return: Encoded matrix representation, and optionally tr values and errors.
     """
 
-    # Normalize to list of sequences
     single_input = isinstance(seqs, str)
     if single_input:
         seqs = [seqs]
@@ -317,10 +333,12 @@ def df_to_matrix(
 
     for idx, peptide in enumerate(seqs):
         try:
+            step = "peptide_parser"
             parsed_sequence, modifiers, sequence, modifications = peptide_parser(
                 peptide
             )
 
+            step = "encode_sequence_and_modification"
             encode_seq_mod = encode_sequence_and_modification(
                 sequence,
                 parsed_sequence,
@@ -329,10 +347,13 @@ def df_to_matrix(
                 modifiers["n_term"],
                 modifiers["c_term"],
             )
+
+            step = "encode_diamino_sequence_and_modification"
             encode_di_seq_mod = encode_diamino_sequence_and_modification(
                 encode_seq_mod=encode_seq_mod
             )
 
+            step = "encode_sequence_and_modification_atomic"
             encode_seq_mod_atomic = encode_sequence_and_modification_atomic(
                 sequence,
                 parsed_sequence,
@@ -340,13 +361,19 @@ def df_to_matrix(
                 modifiers["n_term"],
                 modifiers["c_term"],
             )
+
+            step = "encode_diamino_sequence_and_modification_atomic"
             encode_di_seq_mod_atomic = encode_diamino_sequence_and_modification_atomic(
                 encode_seq_mod_atomic
             )
 
+            step = "encode_sequence_metadata"
             encode_seq_meta = encode_sequence_metadata(sequence, encode_seq_mod_atomic)
+
+            step = "encode_sequence_one_hot"
             seq_hot = encode_sequence_one_hot(sequence)
 
+            step = "combine_encoded_features"
             peptide_encoded = (
                 encode_seq_mod
                 + encode_di_seq_mod
@@ -362,10 +389,28 @@ def df_to_matrix(
                 tr.append(df["tr"].iloc[idx])
 
         except Exception as e:
-            errors.append([peptide, idx, e])
+            errors.append([peptide, idx, step, e])
             continue
 
+    if len(seqs_encoded) == 0:
+        if errors:
+            first_error = errors[0]
+            raise ValueError(
+                f"All peptides failed during encoding. First failing peptide: '{first_error[0]}' at index {first_error[1]}. Failing step: {first_error[2]}. Original error: {first_error[3]}"
+            )
+        raise ValueError(
+            "All peptides failed during encoding. No encoded arrays were created."
+        )
+
     seqs_stack = np.stack(seqs_encoded)
+
+    if errors:
+        print("Encoding errors encountered:")
+        for peptide, idx, step, err in errors[:10]:
+            print(
+                f" - index {idx}, step {step}, peptide '{peptide}': {err}"
+            )
+
     if single_input:
         return seqs_stack[0]
     elif df is not None:
