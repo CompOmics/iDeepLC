@@ -6,6 +6,7 @@ from torch.nn import init
 class MyNet(nn.Module):
     def __init__(self, x_shape, config):
         self.x_shape = x_shape
+        self.seq_len = self.x_shape[-1]
         super(MyNet, self).__init__()
 
         #  first cnn layers for amino
@@ -103,7 +104,7 @@ class MyNet(nn.Module):
         self.l4 = nn.ModuleList()
 
         self.l4.append(
-            nn.Linear(in_features=self.x_shape[2], out_features=config["fc_out"])
+            nn.Linear(in_features=self.seq_len, out_features=config["fc_out"])
         )
         self.l4.append(nn.ReLU())
 
@@ -157,9 +158,9 @@ class MyNet(nn.Module):
                         + config["cnn3_channels"]
                         + config["cnn4_channels"]
                     )
-                    * self.x_shape[2]
+                    * self.seq_len
                     + config["fc_out"] * 7
-                    + config["cnn2_channels"] * int(self.x_shape[2] / 2)
+                    + config["cnn2_channels"] * int(self.seq_len / 2)
                 ),
                 out_features=int(config["fc2_out"]),
             )
@@ -196,7 +197,7 @@ class MyNet(nn.Module):
 
     def forward(self, x):
         x1 = x[:, :1, :]
-        x2 = x[:, 1:8, : int(self.x_shape[2] / 2)]
+        x2 = x[:, 1:8, : int(self.seq_len / 2)]
         x3 = x[:, 8:14, :]
         x4 = x[:, 14:21, :]
         x5 = x[:, 21:, :]
