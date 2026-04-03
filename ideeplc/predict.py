@@ -67,6 +67,8 @@ def predict(
     batch_size: int = None,
     chunk_size: int = 10000,
     dataloader_input: DataLoader = None,
+    mod_features_csv: str = None,
+
 ):
     """
     Load a trained model and evaluate it on test datasets in chunks.
@@ -138,8 +140,12 @@ def predict(
                 output_path.unlink()
 
         for chunk_idx, (df_chunk, dataset_chunk, x_shape) in enumerate(
-            data_initialize_chunked(csv_path=input_file, chunk_size=chunk_size),
-            start=1,
+            data_initialize_chunked(
+                csv_path=input_file,
+                chunk_size=chunk_size,
+                mod_features_csv=mod_features_csv,
+            ),
+
         ):
             LOGGER.info(
                 f"Processing chunk {chunk_idx} with {len(dataset_chunk)} entries and shape {x_shape}."

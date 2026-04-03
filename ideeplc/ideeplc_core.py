@@ -75,7 +75,11 @@ def main(args):
 
         # For model initialization, only inspect the first valid chunk
         x_shape = get_input_shape_from_first_chunk(
-            csv_path=args.input, chunk_size=chunk_size
+
+            csv_path=args.input,
+            chunk_size=chunk_size,
+            mod_features_csv=getattr(args, "mod_features", None),
+
         )
 
         # Initialize model
@@ -101,7 +105,12 @@ def main(args):
         if args.finetune:
             LOGGER.info("Fine-tuning the model")
 
-            matrix_input, _ = data_initialize(csv_path=args.input)
+
+            matrix_input, _ = data_initialize(
+                csv_path=args.input,
+                mod_features_csv=getattr(args, "mod_features", None),
+            )
+
 
             fine_tuner = iDeepLCFineTuner(
                 model=model,
@@ -129,6 +138,8 @@ def main(args):
             save_results=args.save,
             batch_size=batch_size,
             chunk_size=chunk_size,
+            mod_features_csv=getattr(args, "mod_features", None),
+
         )
         LOGGER.info("Prediction completed.")
 

@@ -63,7 +63,12 @@ def data_initialize(
     )
 
     try:
-        sequences, tr, errors = df_to_matrix(reformed_peptides, df)
+        sequences, tr, errors = df_to_matrix(
+            reformed_peptides,
+            df,
+            mod_features_csv=kwargs.get("mod_features_csv"),
+        )
+
     except Exception as e:
         LOGGER.error(f"Error converting sequences to matrix format: {e}")
         raise
@@ -128,7 +133,12 @@ def data_initialize_chunked(
         )
 
         try:
-            sequences, tr, errors = df_to_matrix(reformed_peptides, df)
+            sequences, tr, errors = df_to_matrix(
+                reformed_peptides,
+                df,
+                mod_features_csv=kwargs.get("mod_features_csv"),
+            )
+
         except Exception as e:
             LOGGER.error(
                 f"Error converting sequences to matrix format in chunk {chunk_idx}: {e}"
@@ -150,7 +160,9 @@ def data_initialize_chunked(
         yield df, prediction_dataset, x_shape
 
 
-def get_input_shape_from_first_chunk(csv_path: str, chunk_size: int = 10000):
+
+def get_input_shape_from_first_chunk(csv_path: str, chunk_size: int = 10000, **kwargs):
+
     """
     Get the input shape from the first valid chunk of a CSV file.
 
@@ -159,7 +171,9 @@ def get_input_shape_from_first_chunk(csv_path: str, chunk_size: int = 10000):
     :return: x_shape for model initialization.
     """
     for _, dataset_chunk, x_shape in data_initialize_chunked(
-        csv_path=csv_path, chunk_size=chunk_size
+
+        csv_path=csv_path, chunk_size=chunk_size, **kwargs
+
     ):
         LOGGER.info(f"Detected input shape from first valid chunk: {x_shape}")
         return x_shape

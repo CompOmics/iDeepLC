@@ -1,5 +1,7 @@
 import io
-from typing import List, Tuple, Dict, Union, Optional, Any
+import logging
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -7,6 +9,12 @@ from numpy import ndarray
 from pyteomics import proforma, mass
 from importlib.resources import files
 import ideeplc.structure_feature
+
+
+LOGGER = logging.getLogger(__name__)
+
+MEAN_MOLLOGP = -0.5262240476190472
+STD_MOLLOGP = 0.7546071397979358
 
 
 class Config:
@@ -76,20 +84,130 @@ def aa_chemical_feature() -> Dict[str, np.ndarray]:
     return features_arrays
 
 
-def mod_chemical_features() -> Dict[str, Dict[str, Dict[str, float]]]:
-    """Get modification features."""
-    content = files(ideeplc.structure_feature).joinpath("ptm_stan.csv").read_bytes()
-    df = pd.read_csv(io.BytesIO(content))
-    # Convert the dataframe to a dictionary and transpose it
+def standardize(value: float, mean: float, std: float) -> float:
+    """Apply standardization."""
+    return (value - mean) / std
+
+
+def compute_mollogp(smiles: str) -> Optional[float]:
+    """Compute RDKit MolLogP from a SMILES string."""
+    try:
+        from rdkit import Chem
+        from rdkit.Chem import Crippen
+    except ImportError as exc:
+        raise ImportError(
+            "rdkit is required to build modification features from raw SMILES input."
+        ) from exc
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return None
+    return Crippen.MolLogP(mol)
+
+
+def build_user_mod_feature_table(
+    input_csv: str,
+    output_csv: Optional[str] = None,
+    compute_mollogp_fn: Optional[Callable[[str], Optional[float]]] = None,
+) -> pd.DataFrame:
+    """Build a standardized modification feature table from a raw user CSV."""
+    df = pd.read_csv(input_csv)
+    required_cols = {"name", "aa", "smiles"}
+    if not required_cols.issubset(df.columns):
+        raise ValueError(f"Input file must contain columns: {required_cols}")
+
+    compute_fn = compute_mollogp_fn or compute_mollogp
+    results = []
+
+    for _, row in df.iterrows():
+        name = f"{row['name']}#{row['aa']}"
+        smiles = row["smiles"]
+
+        mollogp = compute_fn(smiles)
+        if mollogp is None:
+            LOGGER.warning("Skipping invalid SMILES for %s", name)
+            continue
+
+        results.append(
+            {
+                "name": name,
+                "MolLogP_rdkit": standardize(mollogp, MEAN_MOLLOGP, STD_MOLLOGP),
+            }
+        )
+
+    if not results:
+        raise ValueError("No valid modification rows were found in the input file.")
+
+    df_out = pd.DataFrame(results)
+    if output_csv:
+        Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
+        df_out.to_csv(output_csv, index=False)
+
+    return df_out
+
+
+def _load_mod_feature_table(csv_path: str) -> pd.DataFrame:
+    """Load either a standardized feature table or a raw user-mod table."""
+    df = pd.read_csv(csv_path)
+
+    if {"name", "MolLogP_rdkit"}.issubset(df.columns):
+        feature_df = df.loc[:, ["name", "MolLogP_rdkit"]].copy()
+    elif {"name", "aa", "smiles"}.issubset(df.columns):
+        feature_df = build_user_mod_feature_table(csv_path)
+    else:
+        raise ValueError(
+            "Modification CSV must contain either ['name', 'MolLogP_rdkit'] or ['name', 'aa', 'smiles'] columns."
+        )
+
+    feature_df = feature_df.dropna(subset=["name", "MolLogP_rdkit"])
+    feature_df["name"] = feature_df["name"].astype(str)
+    feature_df["MolLogP_rdkit"] = feature_df["MolLogP_rdkit"].astype(float)
+    feature_df = feature_df.drop_duplicates(subset=["name"], keep="last")
+    return feature_df
+
+
+def _merge_mod_feature_tables(
+    base_df: pd.DataFrame, extra_df: pd.DataFrame
+) -> pd.DataFrame:
+    """Merge the built-in and user-provided modification feature tables."""
+    combined = base_df.copy()
+    combined.update(extra_df)
+
+    new_rows = extra_df.loc[~extra_df.index.isin(combined.index)]
+    if not new_rows.empty:
+        combined = pd.concat([combined, new_rows])
+
+    return combined
+
+
+def _mod_feature_table_to_dict(
+    df: pd.DataFrame,
+) -> Dict[str, Dict[str, Dict[str, float]]]:
+    """Convert a feature table to the nested modification dictionary format."""
     df = df.set_index("name").T
-    # Convert the DataFrame to a dictionary of modifications with their chemical features
     modified = df.to_dict("list")
     dic = {}
     for key, values in modified.items():
         main_key, sub_key = key.split("#")
-        # Create a nested dictionary with the modification name and the amino acid
         dic.setdefault(main_key, {})[sub_key] = dict(zip(df.index, values))
     return dic
+
+
+def mod_chemical_features(
+    user_mods_csv: Optional[str] = None,
+) -> Dict[str, Dict[str, Dict[str, float]]]:
+    """Get modification features, optionally merged with user-provided modifications."""
+    content = files(ideeplc.structure_feature).joinpath("ptm_stan.csv").read_bytes()
+    base_df = pd.read_csv(io.BytesIO(content))
+    base_df = base_df.loc[:, ["name", "MolLogP_rdkit"]].copy()
+
+    if user_mods_csv:
+        extra_df = _load_mod_feature_table(user_mods_csv)
+        base_df = _merge_mod_feature_tables(
+            base_df.set_index("name"), extra_df.set_index("name")
+        ).reset_index()
+
+    return _mod_feature_table_to_dict(base_df)
 
 
 def peptide_parser(peptide: str) -> Tuple:
@@ -302,7 +420,9 @@ def encode_sequence_one_hot(sequence: str) -> np.ndarray:
 
 
 def df_to_matrix(
-    seqs: Union[str, List[str]], df: Optional[pd.DataFrame] = None
+    seqs: Union[str, List[str]],
+    df: Optional[pd.DataFrame] = None,
+    mod_features_csv: Optional[str] = None,
 ) -> (
     tuple[ndarray, list[Any], list[list[str | list[str] | int | str | Exception]]]
     | ndarray
@@ -327,7 +447,7 @@ def df_to_matrix(
     seqs_encoded = []
     tr = []
     errors = []
-    modifications_dict = mod_chemical_features()
+    modifications_dict = mod_chemical_features(user_mods_csv=mod_features_csv)
     aa_to_feature = aa_chemical_feature()
     amino_acids_atoms = aa_atomic_composition_array()
 
