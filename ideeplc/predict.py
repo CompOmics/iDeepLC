@@ -1,13 +1,14 @@
 import os
 from pathlib import Path
-from typing import Tuple
 import datetime
+from typing import Tuple
 import numpy as np
 import pandas as pd
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from ideeplc.calibrate import SplineTransformerCalibration
+from ideeplc.data_initialize import data_initialize_chunked
 import logging
 
 LOGGER = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ def validate(
 ) -> Tuple[float, float, list, list]:
     """
     Validate the model on a given dataset.
+
     :param model: The trained model.
     :param dataloader: The DataLoader providing the validation/test data.
     :param loss_fn: The loss function to use.
@@ -31,9 +33,9 @@ def validate(
 
     with torch.no_grad():
         for inputs, labels in dataloader:
-            inputs, labels = inputs.to(device, non_blocking=True), labels.to(
-                device, non_blocking=True
-            )
+            inputs = inputs.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
+
             outputs_batch = model(inputs.float())
             loss = loss_fn(outputs_batch, labels.float().view(-1, 1))
 
@@ -42,7 +44,12 @@ def validate(
             ground_truth.extend(labels.cpu().numpy().flatten())
 
     avg_loss = total_loss / len(dataloader.dataset)
-    correlation = np.corrcoef(predictions, ground_truth)[0, 1]
+
+    if len(predictions) > 1 and len(ground_truth) > 1:
+        correlation = np.corrcoef(predictions, ground_truth)[0, 1]
+    else:
+        correlation = np.nan
+
     LOGGER.info(
         f"Validation complete. Loss: {avg_loss:.4f}, Correlation: {correlation:.4f}"
     )
@@ -52,7 +59,6 @@ def validate(
 
 def predict(
     model: nn.Module,
-    dataloader_input: DataLoader,
     loss_fn: nn.Module,
     device: torch.device,
     input_file: str,
@@ -62,17 +68,20 @@ def predict(
     chunk_size: int = 10000,
     dataloader_input: DataLoader = None,
     mod_features_csv: str = None,
+
 ):
     """
-    Load a trained model and evaluate it on test datasets.
+    Load a trained model and evaluate it on test datasets in chunks.
 
     :param model: The trained model.
-    :param dataloader_input: Test dataset loader.
     :param loss_fn: Loss function.
     :param device: Computation device.
     :param input_file: Path to the input file containing peptide sequences.
     :param calibrate: If True, calibrates the results.
     :param save_results: If True, saves the evaluation results.
+    :param batch_size: Batch size used during prediction when reading from file.
+    :param chunk_size: Number of input rows to process per chunk.
+    :param dataloader_input: Optional prebuilt DataLoader for backward compatibility.
     :return: Loss, correlation, predictions, and ground truth values.
     """
     LOGGER.info(
@@ -136,7 +145,7 @@ def predict(
                 chunk_size=chunk_size,
                 mod_features_csv=mod_features_csv,
             ),
-            start=1,
+
         ):
             LOGGER.info(
                 f"Processing chunk {chunk_idx} with {len(dataset_chunk)} entries and shape {x_shape}."
@@ -193,53 +202,35 @@ def predict(
         if calibrate:
             LOGGER.info("Fitting calibration model.")
             calibration_model = SplineTransformerCalibration()
-            calibration_model.fit(ground_truth, predictions)
-            calibrated_preds = calibration_model.transform(predictions)
-            correlation_preds = np.corrcoef(calibrated_preds, ground_truth)[0, 1]
+            calibration_model.fit(all_ground_truth, all_predictions)
+            calibrated_preds = calibration_model.transform(all_predictions)
+
+            if len(calibrated_preds) > 1 and len(all_ground_truth) > 1:
+                correlation = np.corrcoef(calibrated_preds, all_ground_truth)[0, 1]
+            else:
+                correlation = np.nan
 
             loss_calibrated = loss_fn(
                 torch.tensor(calibrated_preds).float().view(-1, 1),
-                torch.tensor(ground_truth).float().view(-1, 1),
+                torch.tensor(all_ground_truth).float().view(-1, 1),
             )
             LOGGER.info(f"Calibration Loss: {loss_calibrated.item():.4f}")
             loss = loss_calibrated.item()
-            correlation = correlation_preds
-        # Save results
-        if save_results:
-            input_df = pd.read_csv(input_file)
 
-            # Extract sequences and modifications from the input file
-            sequences = input_df.get("seq", None)
-            modifications = input_df.get("modifications", None)
+            if save_results:
+                saved_df = pd.read_csv(output_path)
+                saved_df["calibrated_predictions"] = calibrated_preds
+                saved_df.to_csv(output_path, index=False)
+                LOGGER.info(f"Calibrated results saved to {output_path}")
 
-            timestamp = datetime.datetime.now().strftime("%Y%m%d")
-            input_file_name = os.path.splitext(os.path.basename(input_file))[0]
-            output_path = (
-                Path("ideeplc_output")
-                / f"{input_file_name}_predictions_{timestamp}.csv"
-            )
-            output_path.parent.mkdir(
-                parents=True, exist_ok=True
-            )  # Ensure the directory exists
-
-            result_data = {
-                "sequences": sequences,
-                "modifications": modifications,
-                "ground_truth": ground_truth,
-                "predictions": predictions,
-            }
-
-            if calibrate:
-                result_data["calibrated_predictions"] = calibrated_preds
-
-            result_df = pd.DataFrame(result_data)
-            result_df.to_csv(output_path, index=False)
-            LOGGER.info(f"Results saved to {output_path}")
+        LOGGER.info(
+            f"Prediction complete. Loss: {loss:.4f}, Correlation: {correlation:.4f}"
+        )
 
         if calibrate:
-            return loss, correlation, calibrated_preds, ground_truth
+            return loss, correlation, calibrated_preds, all_ground_truth
         else:
-            return loss, correlation, predictions, ground_truth
+            return loss, correlation, all_predictions, all_ground_truth
 
     except Exception as e:
         LOGGER.error(f"An error occurred during prediction: {e}")

@@ -4,10 +4,9 @@ import torch
 from pathlib import Path
 import sys
 from torch import nn
-from torch.utils.data import DataLoader
 from ideeplc.model import MyNet
 from ideeplc.config import get_config
-from ideeplc.data_initialize import data_initialize
+from ideeplc.data_initialize import data_initialize, get_input_shape_from_first_chunk
 from ideeplc.predict import predict
 from ideeplc.figure import make_figures
 from ideeplc.fine_tuning import iDeepLCFineTuner
@@ -39,9 +38,7 @@ def get_model_save_path():
     Determines the correct directory and filename for saving the model.
     Appends a timestamp to the filename to prevent overwriting.
 
-
-    Returns:
-        tuple: (model_save_path, model_dir)
+    :return: Tuple containing model_save_path and model_dir.
     """
     timestamp = datetime.datetime.now().strftime("%m%d")
     model_dir = Path("ideeplc/models") / timestamp
@@ -62,24 +59,27 @@ def main(args):
     """
     Main function that executes training/evaluation for the iDeepLC package based on the provided arguments.
 
-    Args:
-        args (argparse.Namespace): Parsed arguments from the CLI.
+    :param args: Parsed arguments from the CLI.
     """
-
     LOGGER.info("Starting iDeepLC prediction...")
+
     try:
         # Load configuration
         config = get_config()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        chunk_size = config.get("chunk_size", 10000)
+        batch_size = config["batch_size"]
 
-        # Initialize data
+        LOGGER.info(f"Using device: {device}")
         LOGGER.info(f"Loading data from {args.input}")
 
         # For model initialization, only inspect the first valid chunk
         x_shape = get_input_shape_from_first_chunk(
+
             csv_path=args.input,
             chunk_size=chunk_size,
             mod_features_csv=getattr(args, "mod_features", None),
+
         )
 
         # Initialize model
@@ -91,11 +91,12 @@ def main(args):
         pretrained_model, model_dir = get_model_save_path()
         if args.model:
             try:
-                logging.info(f"Using user-specified model path: {args.model}")
+                LOGGER.info(f"Using user-specified model path: {args.model}")
                 pretrained_model = Path(args.model)
             except Exception as e:
                 LOGGER.error(f"Invalid model path provided: {e}")
                 raise e
+
         model.load_state_dict(
             torch.load(pretrained_model, map_location=device), strict=False
         )
@@ -104,10 +105,12 @@ def main(args):
         if args.finetune:
             LOGGER.info("Fine-tuning the model")
 
+
             matrix_input, _ = data_initialize(
                 csv_path=args.input,
                 mod_features_csv=getattr(args, "mod_features", None),
             )
+
 
             fine_tuner = iDeepLCFineTuner(
                 model=model,
@@ -116,21 +119,18 @@ def main(args):
                 device=device,
                 learning_rate=config["learning_rate"],
                 epochs=config["epochs"],
-                batch_size=config["batch_size"],
-                validation_data=None,  # No validation data provided for prediction
+                batch_size=batch_size,
+                validation_data=None,
                 validation_split=0.1,
-                patience=5,
+                patience=20,
             )
             model = fine_tuner.fine_tune(layers_to_freeze=config["layers_to_freeze"])
+            torch.save(model.state_dict(), "finetuned_model_.pth")
 
-        dataloader_input = DataLoader(
-            matrix_input, batch_size=config["batch_size"], shuffle=False
-        )
         # Prediction on provided data
         LOGGER.info("Starting prediction")
         pred_loss, pred_cor, pred_results, ground_truth = predict(
             model=model,
-            dataloader_input=dataloader_input,
             loss_fn=loss_function,
             device=device,
             calibrate=args.calibrate,
@@ -139,8 +139,10 @@ def main(args):
             batch_size=batch_size,
             chunk_size=chunk_size,
             mod_features_csv=getattr(args, "mod_features", None),
+
         )
         LOGGER.info("Prediction completed.")
+
         # Generate Figures
         make_figures(
             predictions=pred_results,
