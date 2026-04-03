@@ -66,6 +66,14 @@ ideeplc --input <path/to/peptide_file.csv> --save --calibrate
 ideeplc --input ./data/example_input/Hela_deeprt --save --finetune --calibrate
 ```
 
+#### Custom modification features
+If you have new modification entries with columns `name`, `aa`, and `smiles`, you can generate a standardized feature table and then use it during prediction:
+
+```sh
+ideeplc-mod-features --input user_mods.csv --output user_mod_features_standardized.csv
+ideeplc --input peptide_file.csv --mod-features user_mod_features_standardized.csv
+```
+
 For more detailed CLI usage, you can run:
 ```sh
 ideeplc --help

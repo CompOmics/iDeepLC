@@ -66,6 +66,7 @@ version = {attr = "ideeplc.__version__"}
 
 [project.scripts]
 ideeplc = "ideeplc.__main__:main"
+ideeplc-mod-features = "ideeplc.mod_features:main"
 
 [project.urls]
 GitHub = "https://github.com/CompOmics/iDeepLC"
