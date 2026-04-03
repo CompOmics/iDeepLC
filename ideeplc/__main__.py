@@ -83,12 +83,14 @@ def _argument_parser() -> argparse.ArgumentParser:
         help="Flag to enable calibration of the model predictions.",
     )
     parser.add_argument(
+        "--user-mods",
         "--mod-features",
+        dest="user_mods",
         type=str,
         required=False,
         help=(
-            "Optional CSV file with either raw modification rows (name, aa, smiles) "
-            "or standardized features (name, MolLogP_rdkit)."
+            "Optional CSV file with user-defined modifications (name, aa, smiles). "
+            "iDeepLC will convert it internally and merge it with the built-in table."
         ),
     )
     return parser

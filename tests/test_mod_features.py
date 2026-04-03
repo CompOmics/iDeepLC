@@ -1,6 +1,7 @@
 # Python
 import pandas as pd
 
+from ideeplc import utilities
 from ideeplc.utilities import (
     MEAN_MOLLOGP,
     STD_MOLLOGP,
@@ -34,18 +35,22 @@ def test_build_user_mod_feature_table(tmp_path):
     assert feature_table.iloc[0]["MolLogP_rdkit"] == expected
 
 
-def test_mod_chemical_features_merges_user_table(tmp_path):
-    """Test that a user feature table is merged into the built-in dictionary."""
-    user_feature_csv = tmp_path / "custom_features.csv"
+def test_mod_chemical_features_merges_user_table(tmp_path, monkeypatch):
+    """Test that raw user mods are converted and merged automatically."""
+    user_feature_csv = tmp_path / "user_mods.csv"
     pd.DataFrame(
         {
-            "name": ["CustomMod#K"],
-            "MolLogP_rdkit": [1.23],
+            "name": ["CustomMod"],
+            "aa": ["K"],
+            "smiles": ["CCO"],
         }
     ).to_csv(user_feature_csv, index=False)
+
+    monkeypatch.setattr(utilities, "compute_mollogp", lambda smiles: 1.23)
 
     mod_dict = mod_chemical_features(user_mods_csv=str(user_feature_csv))
 
     assert "CustomMod" in mod_dict
     assert "K" in mod_dict["CustomMod"]
-    assert mod_dict["CustomMod"]["K"]["MolLogP_rdkit"] == 1.23
+    expected = (1.23 - MEAN_MOLLOGP) / STD_MOLLOGP
+    assert mod_dict["CustomMod"]["K"]["MolLogP_rdkit"] == expected

@@ -77,7 +77,7 @@ def main(args):
         x_shape = get_input_shape_from_first_chunk(
             csv_path=args.input,
             chunk_size=chunk_size,
-            mod_features_csv=getattr(args, "mod_features", None),
+            mod_features_csv=getattr(args, "user_mods", None),
         )
 
         # Initialize model
@@ -105,7 +105,7 @@ def main(args):
 
             matrix_input, _ = data_initialize(
                 csv_path=args.input,
-                mod_features_csv=getattr(args, "mod_features", None),
+                mod_features_csv=getattr(args, "user_mods", None),
             )
 
             fine_tuner = iDeepLCFineTuner(
@@ -134,7 +134,7 @@ def main(args):
             save_results=args.save,
             batch_size=batch_size,
             chunk_size=chunk_size,
-            mod_features_csv=getattr(args, "mod_features", None),
+            mod_features_csv=getattr(args, "user_mods", None),
         )
         LOGGER.info("Prediction completed.")
 

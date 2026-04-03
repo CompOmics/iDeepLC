@@ -57,6 +57,7 @@ ideeplc --input <path/to/peptide_file.csv> --save
 ```sh
 ideeplc --input <path/to/peptide_file.csv> --save --finetune
 ```
+When you run fine-tuning, the updated model is saved as `finetuned_model_.pth` in the project directory.
 #### Calibration
 ```sh
 ideeplc --input <path/to/peptide_file.csv> --save --calibrate
@@ -70,9 +71,19 @@ ideeplc --input ./data/example_input/Hela_deeprt --save --finetune --calibrate
 If you have new modification entries with columns `name`, `aa`, and `smiles`, you can generate a standardized feature table and then use it during prediction:
 
 ```sh
-ideeplc-mod-features --input user_mods.csv --output user_mod_features_standardized.csv
-ideeplc --input peptide_file.csv --mod-features user_mod_features_standardized.csv
+ideeplc --input peptide_file.csv --user-mods user_mods.csv
 ```
+
+Example input file for custom modifications:
+
+```csv
+name,aa,smiles
+CustomOxidation,M,[O]
+CustomAcetyl,K,CC(=O)C
+CustomPhospho,S,OP(=O)(O)O
+```
+
+iDeepLC converts this CSV internally, creates the standardized modification features, and merges them with the built-in dictionary automatically. The `name` value is stored internally in the format `modification#amino_acid`, for example `CustomOxidation#M`.
 
 For more detailed CLI usage, you can run:
 ```sh
