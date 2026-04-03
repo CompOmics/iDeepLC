@@ -74,7 +74,14 @@ def main(args):
 
         # Initialize data
         LOGGER.info(f"Loading data from {args.input}")
-        matrix_input, x_shape = data_initialize(csv_path=args.input)
+
+        # For model initialization, only inspect the first valid chunk
+        x_shape = get_input_shape_from_first_chunk(
+            csv_path=args.input,
+            chunk_size=chunk_size,
+            mod_features_csv=getattr(args, "mod_features", None),
+        )
+
         # Initialize model
         LOGGER.info("Initializing model")
         model = MyNet(x_shape=x_shape, config=config).to(device)
@@ -96,6 +103,12 @@ def main(args):
 
         if args.finetune:
             LOGGER.info("Fine-tuning the model")
+
+            matrix_input, _ = data_initialize(
+                csv_path=args.input,
+                mod_features_csv=getattr(args, "mod_features", None),
+            )
+
             fine_tuner = iDeepLCFineTuner(
                 model=model,
                 train_data=matrix_input,
@@ -123,6 +136,9 @@ def main(args):
             calibrate=args.calibrate,
             input_file=args.input,
             save_results=args.save,
+            batch_size=batch_size,
+            chunk_size=chunk_size,
+            mod_features_csv=getattr(args, "mod_features", None),
         )
         LOGGER.info("Prediction completed.")
         # Generate Figures
