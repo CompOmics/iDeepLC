@@ -68,7 +68,6 @@ def predict(
     chunk_size: int = 10000,
     dataloader_input: DataLoader = None,
     mod_features_csv: str = None,
-
 ):
     """
     Load a trained model and evaluate it on test datasets in chunks.
@@ -132,7 +131,9 @@ def predict(
             return loss, correlation, all_predictions, all_ground_truth
 
         if batch_size is None:
-            raise ValueError("batch_size must be provided when dataloader_input is not used.")
+            raise ValueError(
+                "batch_size must be provided when dataloader_input is not used."
+            )
 
         if save_results:
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -145,7 +146,6 @@ def predict(
                 chunk_size=chunk_size,
                 mod_features_csv=mod_features_csv,
             ),
-
         ):
             LOGGER.info(
                 f"Processing chunk {chunk_idx} with {len(dataset_chunk)} entries and shape {x_shape}."

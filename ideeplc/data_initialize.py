@@ -146,7 +146,9 @@ def data_initialize_chunked(
             raise
 
         if errors:
-            LOGGER.warning(f"Errors encountered during conversion in chunk {chunk_idx}: {errors}")
+            LOGGER.warning(
+                f"Errors encountered during conversion in chunk {chunk_idx}: {errors}"
+            )
 
         prediction_dataset = MyDataset(sequences, tr)
 
@@ -160,9 +162,7 @@ def data_initialize_chunked(
         yield df, prediction_dataset, x_shape
 
 
-
 def get_input_shape_from_first_chunk(csv_path: str, chunk_size: int = 10000, **kwargs):
-
     """
     Get the input shape from the first valid chunk of a CSV file.
 
@@ -171,9 +171,7 @@ def get_input_shape_from_first_chunk(csv_path: str, chunk_size: int = 10000, **k
     :return: x_shape for model initialization.
     """
     for _, dataset_chunk, x_shape in data_initialize_chunked(
-
         csv_path=csv_path, chunk_size=chunk_size, **kwargs
-
     ):
         LOGGER.info(f"Detected input shape from first valid chunk: {x_shape}")
         return x_shape

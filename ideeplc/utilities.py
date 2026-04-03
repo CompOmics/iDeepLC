@@ -527,9 +527,7 @@ def df_to_matrix(
     if errors:
         print("Encoding errors encountered:")
         for peptide, idx, step, err in errors[:10]:
-            print(
-                f" - index {idx}, step {step}, peptide '{peptide}': {err}"
-            )
+            print(f" - index {idx}, step {step}, peptide '{peptide}': {err}")
 
     if single_input:
         return seqs_stack[0]

@@ -39,7 +39,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     feature_table = build_user_mod_feature_table(args.input, args.output)
-    LOGGER.info("Wrote %d modification feature rows to %s", len(feature_table), args.output)
+    LOGGER.info(
+        "Wrote %d modification feature rows to %s", len(feature_table), args.output
+    )
 
 
 if __name__ == "__main__":
