@@ -82,6 +82,15 @@ def _argument_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Flag to enable calibration of the model predictions.",
     )
+    parser.add_argument(
+        "--mod-features",
+        type=str,
+        required=False,
+        help=(
+            "Optional CSV file with either raw modification rows (name, aa, smiles) "
+            "or standardized features (name, MolLogP_rdkit)."
+        ),
+    )
     return parser
 
 
