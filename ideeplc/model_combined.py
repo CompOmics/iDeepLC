@@ -88,6 +88,10 @@ class CombinedNet(nn.Module):
         groups = int(config.get("groups", 8))
         proj_ch = int(config.get("proj_ch", 16))
         n_heads = int(config.get("n_heads", 4))
+        # Branch dropout: during training, randomly zero an entire branch so the
+        # head cannot rely solely on the (easy-to-fit) raw branch and is forced
+        # to also learn from the chemical branch -> better PTM generalization.
+        self.branch_dropout = float(config.get("branch_dropout", 0.0))
 
         # Branch A: raw / learned embedding.
         self.aa_emb = nn.Embedding(n_aa_tokens, emb_dim, padding_idx=0)
@@ -120,4 +124,19 @@ class CombinedNet(nn.Module):
         raw_in = torch.cat([emb, mod_x], dim=1)
         raw_vec = self.raw_branch(raw_in)
         chem_vec = self.chem_branch(mat)
+
+        if self.training and self.branch_dropout > 0.0:
+            # Per-sample branch dropout with INVERTED-dropout rescaling so the
+            # train/eval expectation matches (eval keeps both branches at full
+            # magnitude). Never drop both branches for the same sample.
+            b = raw_vec.size(0)
+            dev = raw_vec.device
+            p = self.branch_dropout
+            keep_raw = (torch.rand(b, 1, device=dev) >= p).float()
+            keep_chem = (torch.rand(b, 1, device=dev) >= p).float()
+            both_dropped = (keep_raw == 0) & (keep_chem == 0)
+            keep_chem = torch.where(both_dropped, torch.ones_like(keep_chem), keep_chem)
+            raw_vec = raw_vec * keep_raw / (1.0 - p)
+            chem_vec = chem_vec * keep_chem / (1.0 - p)
+
         return self.head(torch.cat([raw_vec, chem_vec, feat], dim=1))
