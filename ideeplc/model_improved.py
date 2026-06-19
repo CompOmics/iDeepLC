@@ -1,10 +1,14 @@
 """
 Improved iDeepLC retention-time model.
 
-This network is a drop-in replacement for ``model.MyNet``. It consumes the
-exact same input tensor as the original iDeepLC model, i.e. the 41-channel
-chemical-feature matrix of shape (batch, 41, 62), and returns a single
-retention-time prediction per peptide of shape (batch, 1).
+This network is a drop-in replacement for ``model.MyNet``. By default it
+consumes the same input tensor as the original iDeepLC model, i.e. the
+41-channel chemical-feature matrix of shape (batch, 41, 62), and returns a
+single retention-time prediction per peptide of shape (batch, 1). Optionally,
+if built with ``config["n_extra"] > 0``, it additionally fuses a global
+biochemical feature vector at the head (``forward(x, feat)``); in that case
+the input is NOT identical to MyNet and any A/B comparison must account for the
+extra features.
 
 The architecture adopts the modern building blocks used in the Kaggle
 retention-time model (rt_model_2.py), ported onto iDeepLC's hand-crafted
@@ -104,6 +108,7 @@ class ImprovedNet(nn.Module):
         n_heads = int(config.get("n_heads", 4))
         groups = int(config.get("groups", 8))
         proj_ch = int(config.get("proj_ch", 16))
+        self.n_extra = int(config.get("n_extra", 0))  # optional global feature fusion
 
         self.pos_enc = PositionalEncoding(in_channels, max_len)
 
@@ -136,7 +141,7 @@ class ImprovedNet(nn.Module):
             nn.Conv1d(hidden, proj_ch, kernel_size=1),
             nn.GELU(),
         )
-        head_in = 2 * hidden + proj_ch * max_len
+        head_in = 2 * hidden + proj_ch * max_len + self.n_extra
 
         self.head = nn.Sequential(
             nn.Linear(head_in, hidden),
@@ -163,7 +168,7 @@ class ImprovedNet(nn.Module):
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, feat: torch.Tensor = None) -> torch.Tensor:
         x = self.pos_enc(x)
         x = self.stem(x)
         x = self.res_blocks(x)
@@ -175,4 +180,9 @@ class ImprovedNet(nn.Module):
 
         pooled = torch.cat([x.amax(dim=2), x.mean(dim=2)], dim=1)
         proj = self.proj(x).flatten(1)
-        return self.head(torch.cat([pooled, proj], dim=1))
+        parts = [pooled, proj]
+        if self.n_extra > 0:
+            if feat is None:
+                raise ValueError("ImprovedNet built with n_extra>0 requires `feat`.")
+            parts.append(feat)
+        return self.head(torch.cat(parts, dim=1))
