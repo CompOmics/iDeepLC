@@ -3,3 +3,4 @@ ideeplc.log
 /ideeplc/output
 /dist
 /ideeplc.egg-info
+/benchmarks
