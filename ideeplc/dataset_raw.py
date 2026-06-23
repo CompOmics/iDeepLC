@@ -48,6 +48,30 @@ BULK = {
     "Y": 18.03, "V": 21.57,
 }
 
+# Atomic composition (delta) of each modification, order = ATOMS.
+# Derived from pyteomics proforma mod.composition; aa-independent. This is the
+# physico-chemical signal the original iDeepLC encoding gives the model and that
+# the one-hot modification channel lacks (see SHAP analysis).
+ATOMS = ["C", "H", "O", "N", "P", "S"]
+N_ATOMS = len(ATOMS)
+MOD_ATOM_COMP = {
+    "Carbamidomethyl": [2, 3, 1, 1, 0, 0],
+    "Oxidation": [0, 0, 1, 0, 0, 0],
+    "Acetyl": [2, 2, 1, 0, 0, 0],
+    "Acetylation": [2, 2, 1, 0, 0, 0],
+    "Phospho": [0, 1, 3, 0, 1, 0],
+    "Methyl": [1, 2, 0, 0, 0, 0],
+    "Dimethyl": [2, 4, 0, 0, 0, 0],
+    "Trimethyl": [3, 6, 0, 0, 0, 0],
+    "Formyl": [1, 0, 1, 0, 0, 0],
+    "Propionyl": [3, 4, 1, 0, 0, 0],
+    "Succinyl": [4, 4, 3, 0, 0, 0],
+    "Malonyl": [3, 2, 3, 0, 0, 0],
+    "Crotonyl": [4, 4, 1, 0, 0, 0],
+    "Deamidated": [0, -1, 1, -1, 0, 0],
+    "Nitro": [0, -1, 2, 1, 0, 0],
+}
+
 HYDROPHOBIC = set("AILMFWVY")
 ACIDIC = set("DE")
 BASIC = set("KRH")
@@ -123,6 +147,19 @@ class RawRTDataset(Dataset):
             enc = max(pos - 1, 0)
             if 0 <= enc < self.max_len:
                 x[self.mod_index[name], enc] = 1.0
+        return x
+
+    def encode_mod_atoms(self, mod_string: str) -> np.ndarray:
+        """Per-position atomic composition (C,H,O,N,P,S) of the modifications.
+        Returns (N_ATOMS, max_len). aa-independent physico-chemical mod signal."""
+        x = np.zeros((N_ATOMS, self.max_len), dtype=np.float32)
+        for pos, name in parse_mod_pairs(mod_string):
+            comp = MOD_ATOM_COMP.get(name)
+            if comp is None:
+                continue
+            enc = max(pos - 1, 0)
+            if 0 <= enc < self.max_len:
+                x[:, enc] += np.asarray(comp, dtype=np.float32)
         return x
 
     def extra_features(self, seq: str, mod_string: str) -> np.ndarray:
