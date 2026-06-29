@@ -54,6 +54,10 @@ BULK = {
 # the one-hot modification channel lacks (see SHAP analysis).
 ATOMS = ["C", "H", "O", "N", "P", "S"]
 N_ATOMS = len(ATOMS)
+# Per-atom scale (max |count| over the vocabulary) so the atomic-composition
+# channels land in roughly [-1, 1], matching the 0/1 one-hot scale. Unscaled
+# integer counts (Trimethyl H=6) destabilized training; zeros stay zero.
+MOD_ATOM_SCALE = [4.0, 6.0, 3.0, 1.0, 1.0, 1.0]  # C, H, O, N, P, S
 MOD_ATOM_COMP = {
     "Carbamidomethyl": [2, 3, 1, 1, 0, 0],
     "Oxidation": [0, 0, 1, 0, 0, 0],
@@ -159,7 +163,7 @@ class RawRTDataset(Dataset):
                 continue
             enc = max(pos - 1, 0)
             if 0 <= enc < self.max_len:
-                x[:, enc] += np.asarray(comp, dtype=np.float32)
+                x[:, enc] += np.asarray(comp, dtype=np.float32) / np.asarray(MOD_ATOM_SCALE, dtype=np.float32)
         return x
 
     def extra_features(self, seq: str, mod_string: str) -> np.ndarray:
