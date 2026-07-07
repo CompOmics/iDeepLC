@@ -111,4 +111,4 @@ If you use **iDeepLC** in your research, please cite our paper:
 📄 **iDeepLC: A deep Learning-based retention time predictor for unseen modified peptides with a novel encoding system**  
 🖊 **Alireza Nameni, Arthur Declercq, Ralf Gabriels, Robbe Devreese, Lennart Martens, Sven Degroeve , and Robbin Bouwmeester**  
 📅 **2025**  
-🔗 **DOI**
+🔗 **doi: 10.1021/acs.analchem.5c08017**
